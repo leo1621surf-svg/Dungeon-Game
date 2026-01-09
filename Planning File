@@ -1,0 +1,12 @@
+ - enemies
+ - player goes through rooms avoiding enemies
+ - to win player beats a # of rooms and defeats boss at the end
+ - player progresses by clearing all enemies in the room
+ - player defeats enemy with weapon
+ - player starts with a weapon and finds different types of weapons throughout the rooms, this is a collectible item
+ - different weapons do different damage
+ - if an enemy touches a player, they lose a life
+ - player starts with 5 lives
+ - enemies chase the player
+ - enemies get more difficult as the player goes through rooms
+ - player can obtain a choice of power-ups after beating a room
