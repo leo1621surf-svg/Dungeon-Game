@@ -8,5 +8,6 @@
  - if an enemy touches a player, they lose a life
  - player starts with 5 lives
  - enemies chase the player
+ - enemies are all the same size
  - enemies get more difficult as the player goes through rooms
  - player can obtain a choice of power-ups after beating a room
