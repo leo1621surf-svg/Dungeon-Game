@@ -1,4 +1,3 @@
-from ctypes.macholib.dylib import dylib_info
 
 import pygame
 import sys
@@ -20,7 +19,7 @@ LAST_LEVEL = 10
 screen = pygame.display.set.mode((WIDTH, HEIGHT))
 pygame.display.set_caption("")
 
-MAP_DIR = "/Users/leocabida/Desktop/PythonProject4"
+MAP_DIR = "/"
 
 def scale(img, factor):
     width, height = img.get_size()
@@ -28,13 +27,19 @@ def scale(img, factor):
 
 IMAGE_DIR = os.path.join(os.path.dirname(__file__), "sprites")
 PLAYER_IMAGES = {
-    "": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
+    "player.png": scale(pygame.image.load(os.path.join(IMAGE_DIR, "player.png")), 0.75),
     "": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
     "": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
     "": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
 }
 
+ENEMY_IMAGES = {
+    "cyclops.png": scale(pygame.image.load(os.path.join(IMAGE_DIR, "cyclops.png")), 0.75),
+    "ghost.png": scale(pygame.image.load(os.path.join(IMAGE_DIR, "ghost.png")), 0.75),
+}
+
 IMAGE_SAND = pygame.image.load(os.path.join(IMAGE_DIR, "plain sand.png"))
+IMAGE_WALL = pygame.image.load(os.path.join(IMAGE_DIR, "wall.png"))
 
 def load_map(filename):
     path = os.path.join(MAP_DIR, filename)
@@ -62,6 +67,7 @@ class Player:
         self.feet.centerx = self.rect.centerx
         self.feet.bottom = self.rect.bottom
         self.speed = PLAYER_BASE_SPEED
+        self.lives = 5
 
     def move(self, dx, dy, walls):
 
@@ -112,9 +118,10 @@ class Player:
 
 class Enemy:
     def __init__(self, pos):
-        self.image = "enemy.png"
+        self.image = "cyclops.png"
         self.rect = self.image.get_rect(topleft = pos)
         self.speed = ENEMY_SPEED
+        self.cooldown = 0
 
     def move(self, player, walls):
         dx = dy = 0
@@ -129,9 +136,32 @@ class Enemy:
         elif player.rect.centery < self.rect.centerx:
             dy = -self.speed
 
+        self.rect.x += dx
+        for wall in walls:
+            if self.rect.colliderect(wall):
+                if dx > 0:
+                    self.rect.right = wall.left
+                elif dx < 0:
+                    self.rect.left = wall.right
 
+        self.rect.y += dy
+        for wall in walls:
+            if self.rect.colliderect(wall):
+                if dy > 0:
+                    self.rect.bottom = wall.top
+                elif dy < 0:
+                    self.rect.top = wall.bottom
 
+        if self.cooldown > 0:
+            self.cooldown -= 1
 
+    def attack(self, player):
+        if self.cooldown == 0 and self.rect.colliderect(player.rect):
+            player.lives -= 1
+            self.cooldown = 180
+
+def draw(self, surface):
+    surface.blit(self.image, self.rect.topleft)
 
 def build(level_map):
     walls = []
