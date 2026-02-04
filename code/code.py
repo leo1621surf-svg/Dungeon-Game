@@ -16,47 +16,73 @@ FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
 
 #creates screen and sets up caption
-screen = pygame.display.set.mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("")
 
-MAP_DIR = "/"
+clock = pygame.time.Clock()
+IMAGE_DIR = os.path.join(os.path.dirname(__file__), "sprites")
+BASE_DIR = os.path.dirname(__file__)
+
+MAP_DIR = os.path.join(BASE_DIR, "levels")
 
 def scale(img, factor):
     width, height = img.get_size()
     return pygame.transform.scale(img, (int(width* factor), int(height * factor) ))
 
-IMAGE_DIR = os.path.join(os.path.dirname(__file__), "sprites")
 PLAYER_IMAGES = {
-    "player.png": scale(pygame.image.load(os.path.join(IMAGE_DIR, "player.png")), 0.75),
-    "": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
-    "": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
-    "": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
+    "down": scale(pygame.image.load(os.path.join(IMAGE_DIR, "player.png")), 0.75),
+    #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
+   #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
+   #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
 }
 
 ENEMY_IMAGES = {
-    "cyclops.png": scale(pygame.image.load(os.path.join(IMAGE_DIR, "cyclops.png")), 0.75),
-    "ghost.png": scale(pygame.image.load(os.path.join(IMAGE_DIR, "ghost.png")), 0.75),
+    "cyclops": scale(pygame.image.load(os.path.join(IMAGE_DIR, "cyclops.png")), 0.75),
+    "ghost": scale(pygame.image.load(os.path.join(IMAGE_DIR, "ghost.png")), 0.75),
 }
 
 IMAGE_SAND = pygame.image.load(os.path.join(IMAGE_DIR, "plain sand.png"))
 IMAGE_WALL = pygame.image.load(os.path.join(IMAGE_DIR, "wall.png"))
 
-def load_map(filename):
-    path = os.path.join(MAP_DIR, filename)
-    with open(path, "r") as f:
-        return [line.strip() for line in f.readlines()]
+# def load_map(filename):
+#     path = os.path.join(MAP_DIR, filename)
+#     with open(path, "r") as f:
+#         return [line.strip() for line in f.readlines()]
 
 def load_level(number):
     path = os.path.join(MAP_DIR, f"levels/level{number}.txt")
 
     if not os.path.exists(path):
-        print("No More Levels")
-        return None
+        return None, None
+
+    with open(path, "r") as f:
+        level_map = [line.strip() for line in f.readlines()]
 
     walls = []
-    with open(path, "r") as f:
-        rows = f.readlines()
-    return walls
+    enemies = []
+
+    for row_index, row in enumerate(level_map):
+        for column_index, char in enumerate(row):
+            x = column_index * TILE
+            y = row_index * TILE
+            if char == "#":
+                walls.append(pygame.Rect(x, y, TILE, TILE))
+            elif char == "e":
+                enemies.append((x, y))
+
+    return level_map, walls, enemies
+
+def draw_level(level_map):
+    for row_index, row in enumerate(level_map):
+        for column_index, char in enumerate(row):
+            x = column_index * TILE
+            y = row_index * TILE
+
+            if char == "#":
+                screen.blit(IMAGE_WALL, (x, y))
+
+            elif char == ".":
+                screen.blit(IMAGE_SAND, (x, y))
 
 class Player:
     def __init__(self, pos):
@@ -169,5 +195,11 @@ def build(level_map):
 
 def main():
     current_level = 1
-    walls = load_level(current_level)
+    level_map, walls = load_level(current_level)
 
+    player = Player((TILE, TILE))
+    enemies = []
+
+    running = True
+    while running:
+        screen.fill((0, 0, 0))
