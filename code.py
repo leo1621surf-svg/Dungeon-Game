@@ -11,7 +11,7 @@ WIDTH, HEIGHT = 800, 640
 PLAYER_BASE_SPEED = 4
 PLAYER_SPRINT_SPEED = 8
 ENEMY_SPEED = 5
-TILE = 32
+TILE = 15
 FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
 
@@ -50,7 +50,8 @@ IMAGE_WALL = pygame.image.load(os.path.join(IMAGE_DIR, "wall.png"))
 #         return [line.strip() for line in f.readlines()]
 
 def load_level(number):
-    path = os.path.join(MAP_DIR, f"levels/level{number}.txt")
+    path = os.path.join(MAP_DIR, f"level{number}.txt")
+    print("looking for", path)
 
     if not os.path.exists(path):
         return None, None
@@ -144,7 +145,7 @@ class Player:
 
 class Enemy:
     def __init__(self, pos):
-        self.image = "cyclops.png"
+        self.image = ENEMY_IMAGES["cyclops"]
         self.rect = self.image.get_rect(topleft = pos)
         self.speed = ENEMY_SPEED
         self.cooldown = 0
@@ -186,20 +187,58 @@ class Enemy:
             player.lives -= 1
             self.cooldown = 180
 
-def draw(self, surface):
-    surface.blit(self.image, self.rect.topleft)
-
-def build(level_map):
-    walls = []
-    return walls
+    def draw(self, surface):
+        surface.blit(self.image, self.rect.topleft)
 
 def main():
     current_level = 1
-    level_map, walls = load_level(current_level)
+    level_map, walls, enemy_positions = load_level(current_level)
+
+    if level_map is None:
+        print ("level not found")
+        pygame.quit()
+        return
 
     player = Player((TILE, TILE))
-    enemies = []
+    enemies = [Enemy(pos) for pos in enemy_positions]
 
     running = True
     while running:
         screen.fill((0, 0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        keys = pygame.key.get_pressed()
+        dx = 0
+        dy = 0
+
+        if keys[pygame.K_a]:
+            dx = -player.speed
+        if keys[pygame.K_d]:
+            dx = player.speed
+        if keys[pygame.K_s]:
+            dy = -player.speed
+        if keys[pygame.K_w]:
+            dy = player.speed
+
+        player.move(dx, dy, walls)
+
+        for enemy in enemies:
+            enemy.move(player, walls)
+            enemy.attack(player)
+
+        draw_level(level_map)
+        player.draw(screen)
+
+        for enemy in enemies:
+            enemy.draw(screen)
+
+        pygame.display.flip()
+
+    pygame.quit()
+    sys.exit()
+
+if __name__ == "__main__":
+    main()
