@@ -8,10 +8,10 @@ pygame.init()
 
 #setup variables
 WIDTH, HEIGHT = 800, 640
-PLAYER_BASE_SPEED = 4
-PLAYER_SPRINT_SPEED = 8
-ENEMY_SPEED = 5
-TILE = 15
+PLAYER_BASE_SPEED = 8
+PLAYER_SPRINT_SPEED = 16
+ENEMY_SPEED = 10
+TILE = 32
 FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
 
@@ -30,19 +30,19 @@ def scale(img, factor):
     return pygame.transform.scale(img, (int(width* factor), int(height * factor) ))
 
 PLAYER_IMAGES = {
-    "down": scale(pygame.image.load(os.path.join(IMAGE_DIR, "player.png")), 0.75),
+    "down": scale(pygame.image.load(os.path.join(IMAGE_DIR, "player.png")), 1.2),
     #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
    #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
    #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
 }
 
 ENEMY_IMAGES = {
-    "cyclops": scale(pygame.image.load(os.path.join(IMAGE_DIR, "cyclops.png")), 0.75),
-    "ghost": scale(pygame.image.load(os.path.join(IMAGE_DIR, "ghost.png")), 0.75),
+    "cyclops": scale(pygame.image.load(os.path.join(IMAGE_DIR, "cyclops.png")), 1.2),
+    "ghost": scale(pygame.image.load(os.path.join(IMAGE_DIR, "ghost.png")), 1.2),
 }
 
-IMAGE_SAND = pygame.image.load(os.path.join(IMAGE_DIR, "plain sand.png"))
-IMAGE_WALL = pygame.image.load(os.path.join(IMAGE_DIR, "wall.png"))
+IMAGE_SAND = scale(pygame.image.load(os.path.join(IMAGE_DIR, "plain sand.png")), TILE)
+IMAGE_WALL = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall.png")), TILE)
 
 # def load_map(filename):
 #     path = os.path.join(MAP_DIR, filename)
@@ -104,9 +104,9 @@ class Player:
         self.feet.bottom = self.rect.bottom
 
         for w in walls:
-            if self.feet.colliderect(w):
+            if self.rect.colliderect(w):
                 if dx > 0:
-                    self.feet.right = w.left
+                    self.rect.right = w.left
                 elif dx < 0:
                     self.rect.left = w.right
 
@@ -116,10 +116,11 @@ class Player:
         self.feet.bottom = self.rect.bottom
 
         for w in walls:
-            if dy > 0:
-                self.rect.bottom = w.top
-            elif dy < 0:
-                self.rect.top = w. bottom
+            if self.rect.colliderect(w):
+                if dy > 0:
+                    self.rect.bottom = w.top
+                elif dy < 0:
+                    self.rect.top = w. bottom
 
                 self.feet.centerx = self.rect.centerx
                 self.feet.bottom = self.rect.bottom
@@ -219,9 +220,9 @@ def main():
         if keys[pygame.K_d]:
             dx = player.speed
         if keys[pygame.K_s]:
-            dy = -player.speed
-        if keys[pygame.K_w]:
             dy = player.speed
+        if keys[pygame.K_w]:
+            dy = -player.speed
 
         player.move(dx, dy, walls)
 
