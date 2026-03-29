@@ -43,11 +43,12 @@ ENEMY_IMAGES = {
 
 IMAGE_SAND = scale(pygame.image.load(os.path.join(IMAGE_DIR, "plain sand.png")), TILE)
 IMAGE_WALL = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall.png")), TILE)
-
-# def load_map(filename):
-#     path = os.path.join(MAP_DIR, filename)
-#     with open(path, "r") as f:
-#         return [line.strip() for line in f.readlines()]
+IMAGE_DOOR = scale(pygame.image.load(os.path.join(IMAGE_DIR, "single door.png")), 2)
+IMAGE_BARREL = scale(pygame.image.load(os.path.join(IMAGE_DIR, "barrel.png")), 2)
+IMAGE_TOP = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
+IMAGE_TOPLEFT = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
+IMAGE_CORNER = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall corner.png")), 2)
+IMAGE_SPOTS = scale(pygame.image.load(os.path.join(IMAGE_DIR, "spotted sand.png")), 2)
 
 def load_level(number):
     path = os.path.join(MAP_DIR, f"level{number}.txt")
@@ -84,6 +85,25 @@ def draw_level(level_map):
 
             elif char == ".":
                 screen.blit(IMAGE_SAND, (x, y))
+
+            elif char == "D":
+                screen.blit(IMAGE_DOOR, (x, y))
+
+            elif char == "B":
+                screen.blit(IMAGE_BARREL, (x, y))
+
+            elif char == "T":
+                screen.blit(IMAGE_TOP, (x, y))
+
+            elif char == "L":
+                rotated = pygame.transform.rotate(IMAGE_TOPLEFT, 90)
+                screen.blit(rotated, (x, y))
+
+            elif char == "C":
+                screen.blit(IMAGE_CORNER, (x, y))
+
+            elif char == "S":
+                screen.blit(IMAGE_SPOTS, (x, y))
 
 class Player:
     def __init__(self, pos):
