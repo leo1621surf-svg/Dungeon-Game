@@ -8,9 +8,9 @@ pygame.init()
 
 #setup variables
 WIDTH, HEIGHT = 800, 640
-PLAYER_BASE_SPEED = 8
-PLAYER_SPRINT_SPEED = 16
-ENEMY_SPEED = 10
+PLAYER_BASE_SPEED = 3
+PLAYER_SPRINT_SPEED = 5
+ENEMY_SPEED = 2
 TILE = 32
 FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
@@ -41,14 +41,15 @@ ENEMY_IMAGES = {
     "ghost": scale(pygame.image.load(os.path.join(IMAGE_DIR, "ghost.png")), 1.2),
 }
 
-IMAGE_SAND = scale(pygame.image.load(os.path.join(IMAGE_DIR, "plain sand.png")), TILE)
-IMAGE_WALL = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall.png")), TILE)
+IMAGE_SAND = pygame.transform.scale(pygame.image.load(os.path.join(IMAGE_DIR, "plain sand.png")),(TILE, TILE))
+IMAGE_WALL = pygame.transform.scale(pygame.image.load(os.path.join(IMAGE_DIR, "plain brown tile.png")),(TILE, TILE))
 IMAGE_DOOR = scale(pygame.image.load(os.path.join(IMAGE_DIR, "single door.png")), 2)
 IMAGE_BARREL = scale(pygame.image.load(os.path.join(IMAGE_DIR, "barrel.png")), 2)
 IMAGE_TOP = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
 IMAGE_TOPLEFT = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
 IMAGE_CORNER = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall corner.png")), 2)
 IMAGE_SPOTS = scale(pygame.image.load(os.path.join(IMAGE_DIR, "spotted sand.png")), 2)
+IMAGE_HEART = pygame.transform.scale(pygame.image.load(os.path.join(IMAGE_DIR, "temporary heart.png")),(TILE, TILE))
 
 def load_level(number):
     path = os.path.join(MAP_DIR, f"level{number}.txt")
@@ -80,11 +81,13 @@ def draw_level(level_map):
             x = column_index * TILE
             y = row_index * TILE
 
+            screen.blit(IMAGE_SAND, (x, y))
+
             if char == "#":
                 screen.blit(IMAGE_WALL, (x, y))
 
-            elif char == ".":
-                screen.blit(IMAGE_SAND, (x, y))
+            elif char == "H":
+                screen.blit(IMAGE_HEART, (x, y))
 
             elif char == "D":
                 screen.blit(IMAGE_DOOR, (x, y))
@@ -115,10 +118,13 @@ class Player:
         self.feet.bottom = self.rect.bottom
         self.speed = PLAYER_BASE_SPEED
         self.lives = 5
+        self.x = float(self.rect.x)
+        self.y = float(self.rect.y)
 
     def move(self, dx, dy, walls):
 
-        self.rect.x += dx
+        self.x += dx
+        self.rect.x = int(self.x)
 
         self.feet.centerx = self.rect.centerx
         self.feet.bottom = self.rect.bottom
@@ -129,8 +135,10 @@ class Player:
                     self.rect.right = w.left
                 elif dx < 0:
                     self.rect.left = w.right
+                self.x = self.rect.x
 
-        self.rect.y += dy
+        self.y += dy
+        self.rect.y = int(self.y)
 
         self.feet.centerx = self.rect.centerx
         self.feet.bottom = self.rect.bottom
@@ -141,6 +149,7 @@ class Player:
                     self.rect.bottom = w.top
                 elif dy < 0:
                     self.rect.top = w. bottom
+                self.y = self.rect.y
 
                 self.feet.centerx = self.rect.centerx
                 self.feet.bottom = self.rect.bottom
@@ -170,6 +179,8 @@ class Enemy:
         self.rect = self.image.get_rect(topleft = pos)
         self.speed = ENEMY_SPEED
         self.cooldown = 0
+        self.x = float(self.rect.x)
+        self.y = float(self.rect.y)
 
     def move(self, player, walls):
         dx = dy = 0
@@ -184,7 +195,8 @@ class Enemy:
         elif player.rect.centery < self.rect.centerx:
             dy = -self.speed
 
-        self.rect.x += dx
+        self.x += dx
+        self.rect.x = int(self.x)
         for wall in walls:
             if self.rect.colliderect(wall):
                 if dx > 0:
@@ -192,7 +204,8 @@ class Enemy:
                 elif dx < 0:
                     self.rect.left = wall.right
 
-        self.rect.y += dy
+        self.y += dy
+        self.rect.y = int(self.y)
         for wall in walls:
             if self.rect.colliderect(wall):
                 if dy > 0:
@@ -225,7 +238,9 @@ def main():
 
     running = True
     while running:
+
         screen.fill((0, 0, 0))
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
