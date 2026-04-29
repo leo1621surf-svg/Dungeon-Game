@@ -5,9 +5,11 @@
  - player defeats enemy with weapon
  - player starts with a weapon and finds different types of weapons throughout the rooms, this is a collectible item
  - different weapons do different damage
- - if an enemy touches a player, they lose a life
- - player starts with 5 lives
+ - if an enemy touches a player, they lose amount of damage assigned to that enemy
+ - player starts with 100 hp
  - enemies chase the player
  - enemies are all the same size
  - enemies get more difficult as the player goes through rooms
  - player can obtain a choice of power-ups after beating a room
+ - power-up can increase max health
+ - cyclops takes away 20

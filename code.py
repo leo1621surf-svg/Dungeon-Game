@@ -49,7 +49,6 @@ IMAGE_TOP = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
 IMAGE_TOPLEFT = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
 IMAGE_CORNER = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall corner.png")), 2)
 IMAGE_SPOTS = scale(pygame.image.load(os.path.join(IMAGE_DIR, "spotted sand.png")), 2)
-IMAGE_HEART = pygame.transform.scale(pygame.image.load(os.path.join(IMAGE_DIR, "temporary heart.png")),(TILE, TILE))
 
 def load_level(number):
     path = os.path.join(MAP_DIR, f"level{number}.txt")
@@ -86,9 +85,6 @@ def draw_level(level_map):
             if char == "#":
                 screen.blit(IMAGE_WALL, (x, y))
 
-            elif char == "H":
-                screen.blit(IMAGE_HEART, (x, y))
-
             elif char == "D":
                 screen.blit(IMAGE_DOOR, (x, y))
 
@@ -117,9 +113,11 @@ class Player:
         self.feet.centerx = self.rect.centerx
         self.feet.bottom = self.rect.bottom
         self.speed = PLAYER_BASE_SPEED
-        self.lives = 5
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
+        self.health = 100
+        self.maxhealth = 100
+        self.cooldown = 0
 
     def move(self, dx, dy, walls):
 
@@ -178,7 +176,6 @@ class Enemy:
         self.image = ENEMY_IMAGES["cyclops"]
         self.rect = self.image.get_rect(topleft = pos)
         self.speed = ENEMY_SPEED
-        self.cooldown = 0
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
 
@@ -213,13 +210,11 @@ class Enemy:
                 elif dy < 0:
                     self.rect.top = wall.bottom
 
-        if self.cooldown > 0:
-            self.cooldown -= 1
-
     def attack(self, player):
-        if self.cooldown == 0 and self.rect.colliderect(player.rect):
-            player.lives -= 1
-            self.cooldown = 180
+        if player.cooldown == 0 and self.rect.colliderect(player.rect):
+            player.health -= 20
+            player.health = max(player.health, 0)
+            player.cooldown = 180
 
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
@@ -260,6 +255,9 @@ def main():
             dy = -player.speed
 
         player.move(dx, dy, walls)
+
+        if player.cooldown > 0:
+            player.cooldown -= 1
 
         for enemy in enemies:
             enemy.move(player, walls)
