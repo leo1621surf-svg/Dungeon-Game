@@ -12,4 +12,5 @@
  - enemies get more difficult as the player goes through rooms
  - player can obtain a choice of power-ups after beating a room
  - power-up can increase max health
- - cyclops takes away 20
+ - cyclops takes away 20 health
+ - amount of damage done to an enemy is displayed above their heads

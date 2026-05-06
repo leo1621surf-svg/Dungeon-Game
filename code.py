@@ -8,9 +8,9 @@ pygame.init()
 
 #setup variables
 WIDTH, HEIGHT = 800, 640
-PLAYER_BASE_SPEED = 3
+PLAYER_BASE_SPEED = 1.5
 PLAYER_SPRINT_SPEED = 5
-ENEMY_SPEED = 2
+ENEMY_SPEED = 0.75
 TILE = 32
 FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
@@ -46,7 +46,7 @@ IMAGE_WALL = pygame.transform.scale(pygame.image.load(os.path.join(IMAGE_DIR, "p
 IMAGE_DOOR = scale(pygame.image.load(os.path.join(IMAGE_DIR, "single door.png")), 2)
 IMAGE_BARREL = scale(pygame.image.load(os.path.join(IMAGE_DIR, "barrel.png")), 2)
 IMAGE_TOP = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
-IMAGE_TOPLEFT = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
+IMAGE_TOP_LEFT = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
 IMAGE_CORNER = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall corner.png")), 2)
 IMAGE_SPOTS = scale(pygame.image.load(os.path.join(IMAGE_DIR, "spotted sand.png")), 2)
 
@@ -95,7 +95,7 @@ def draw_level(level_map):
                 screen.blit(IMAGE_TOP, (x, y))
 
             elif char == "L":
-                rotated = pygame.transform.rotate(IMAGE_TOPLEFT, 90)
+                rotated = pygame.transform.rotate(IMAGE_TOP_LEFT, 90)
                 screen.blit(rotated, (x, y))
 
             elif char == "C":
@@ -116,7 +116,7 @@ class Player:
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
         self.health = 100
-        self.maxhealth = 100
+        self.max_health = 100
         self.cooldown = 0
 
     def move(self, dx, dy, walls):
@@ -178,6 +178,8 @@ class Enemy:
         self.speed = ENEMY_SPEED
         self.x = float(self.rect.x)
         self.y = float(self.rect.y)
+        self.health = 100
+        self.max_health = 100
 
     def move(self, player, walls):
         dx = dy = 0
@@ -187,9 +189,9 @@ class Enemy:
         elif player.rect.centerx < self.rect.centerx:
             dx = -self.speed
 
-        if player.rect.centery > self.rect.centerx:
+        if player.rect.centery > self.rect.centery:
             dy = self.speed
-        elif player.rect.centery < self.rect.centerx:
+        elif player.rect.centery < self.rect.centery:
             dy = -self.speed
 
         self.x += dx
@@ -218,6 +220,18 @@ class Enemy:
 
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
+
+def draw_health_bar(surface, player):
+    width = 200
+    height = 20
+    x, y = 10, 10
+
+    pygame.draw.rect(surface, (200, 0, 0), (x, y, width, height))
+
+    ratio = player.health / player.max_health
+
+    pygame.draw.rect(surface, (0, 200, 0), (x, y, width * ratio, height))
+    pygame.draw.rect(surface, (255, 255, 255), (x, y, width, height), 2)
 
 def main():
     current_level = 1
@@ -268,6 +282,8 @@ def main():
 
         for enemy in enemies:
             enemy.draw(screen)
+
+        draw_health_bar(screen, player)
 
         pygame.display.flip()
 
