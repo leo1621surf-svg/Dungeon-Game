@@ -30,7 +30,7 @@ def scale(img, factor):
     return pygame.transform.scale(img, (int(width* factor), int(height * factor) ))
 
 PLAYER_IMAGES = {
-    "down": scale(pygame.image.load(os.path.join(IMAGE_DIR, "player.png")), 1.2),
+    "down": scale(pygame.image.load(os.path.join(IMAGE_DIR, "player.png")), 1.4),
     #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
    #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
    #"": scale(pygame.image.load(os.path.join(IMAGE_DIR, "")), 0.75),
@@ -49,6 +49,7 @@ IMAGE_TOP = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
 IMAGE_TOP_LEFT = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")), 2)
 IMAGE_CORNER = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall corner.png")), 2)
 IMAGE_SPOTS = scale(pygame.image.load(os.path.join(IMAGE_DIR, "spotted sand.png")), 2)
+IMAGE_SWORD = scale(pygame.image.load(os.path.join(IMAGE_DIR, "sword.png")), 1.3)
 
 def load_level(number):
     path = os.path.join(MAP_DIR, f"level{number}.txt")
@@ -118,6 +119,8 @@ class Player:
         self.health = 100
         self.max_health = 100
         self.cooldown = 0
+        self.inventory = []
+        self.equipped_weapon = None
 
     def move(self, dx, dy, walls):
 
@@ -221,6 +224,26 @@ class Enemy:
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
 
+class Weapon:
+    def __init__(self, pos, name):
+        self.image = IMAGE_SWORD
+        self.rect = self.image.get_rect(topleft=pos)
+        self.collected = False
+        self.name = name
+
+    def check_collect(self, player):
+        if self.rect.colliderect(player.rect):
+            self.collected = True
+
+            player.inventory.append(self)
+
+            if player.equipped_weapon is None:
+                player.equipped_weapon = self
+
+    def draw(self, surface):
+        if not self.collected:
+            surface.blit(self.image, self.rect.topleft)
+
 def draw_health_bar(surface, player):
     width = 200
     height = 20
@@ -244,6 +267,7 @@ def main():
 
     player = Player((TILE, TILE))
     enemies = [Enemy(pos) for pos in enemy_positions]
+    weapon = Weapon((300, 300))
 
     running = True
     while running:
@@ -277,7 +301,10 @@ def main():
             enemy.move(player, walls)
             enemy.attack(player)
 
+        weapon.check_collect(player)
+
         draw_level(level_map)
+        weapon.draw(screen)
         player.draw(screen)
 
         for enemy in enemies:
