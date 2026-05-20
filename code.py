@@ -50,6 +50,7 @@ IMAGE_TOP_LEFT = scale(pygame.image.load(os.path.join(IMAGE_DIR, "top wall.png")
 IMAGE_CORNER = scale(pygame.image.load(os.path.join(IMAGE_DIR, "wall corner.png")), 2)
 IMAGE_SPOTS = scale(pygame.image.load(os.path.join(IMAGE_DIR, "spotted sand.png")), 2)
 IMAGE_SWORD = scale(pygame.image.load(os.path.join(IMAGE_DIR, "sword.png")), 1.3)
+IMAGE_AXE = scale(pygame.image.load(os.path.join(IMAGE_DIR, "axe.png")), 1.3)
 
 def load_level(number):
     path = os.path.join(MAP_DIR, f"level{number}.txt")
@@ -174,6 +175,12 @@ class Player:
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
 
+        if self.equipped_weapon is not None:
+            weapon_x = self.rect.centerx + 3.5
+            weapon_y = self.rect.centery - 10
+
+            surface.blit(self.equipped_weapon.image, (weapon_x, weapon_y))
+
 class Enemy:
     def __init__(self, pos):
         self.image = ENEMY_IMAGES["cyclops"]
@@ -225,11 +232,13 @@ class Enemy:
         surface.blit(self.image, self.rect.topleft)
 
 class Weapon:
-    def __init__(self, pos, name):
-        self.image = IMAGE_SWORD
+    def __init__(self, pos, name, image):
+        self.image = image
         self.rect = self.image.get_rect(topleft=pos)
         self.collected = False
         self.name = name
+        self.equipped = False
+
 
     def check_collect(self, player):
         if self.rect.colliderect(player.rect):
@@ -267,7 +276,7 @@ def main():
 
     player = Player((TILE, TILE))
     enemies = [Enemy(pos) for pos in enemy_positions]
-    weapon = Weapon((300, 300))
+    weapon = [Weapon((300, 300), "Sword", IMAGE_SWORD), Weapon((100, 100), "Axe", IMAGE_AXE) ]
 
     running = True
     while running:
@@ -278,6 +287,30 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            if event.type == pygame.KEYDOWN:
+
+                if event.key == pygame.K_1:
+                    if len(player.inventory) >= 1:
+                        player.equip_weapon = player.inventory[0]
+                        print ("Weapon Equipped")
+
+                if event.key == pygame.K_2:
+                    if len(player.inventory) >= 2:
+                        player.equip_weapon = player.inventory[1]
+                        print("Weapon 2 Equipped")
+
+                if event.key == pygame.K_3:
+                    if len(player.inventory) >= 3:
+                        player.equip_weapon = player.inventory[2]
+
+                if event.key == pygame.K_4:
+                    if len(player.inventory) >= 4:
+                        player.equip_weapon = player.inventory[3]
+
+                if event.key == pygame.K_5:
+                    if len(player.inventory) >= 5:
+                        player.equip_weapon = player.inventory[4]
 
         keys = pygame.key.get_pressed()
         dx = 0
@@ -301,10 +334,15 @@ def main():
             enemy.move(player, walls)
             enemy.attack(player)
 
-        weapon.check_collect(player)
+        for w in weapon:
+            w.check_collect(player)
+
 
         draw_level(level_map)
-        weapon.draw(screen)
+
+        for w in weapon:
+            w.draw(screen)
+
         player.draw(screen)
 
         for enemy in enemies:
