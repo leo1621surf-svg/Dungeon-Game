@@ -232,16 +232,17 @@ class Enemy:
         surface.blit(self.image, self.rect.topleft)
 
 class Weapon:
-    def __init__(self, pos, name, image):
+    def __init__(self, pos, name, image, damage):
         self.image = image
         self.rect = self.image.get_rect(topleft=pos)
         self.collected = False
         self.name = name
         self.equipped = False
+        self.damage = damage
 
 
     def check_collect(self, player):
-        if self.rect.colliderect(player.rect):
+        if not self.collected and self.rect.colliderect(player.rect):
             self.collected = True
 
             player.inventory.append(self)
@@ -276,7 +277,7 @@ def main():
 
     player = Player((TILE, TILE))
     enemies = [Enemy(pos) for pos in enemy_positions]
-    weapon = [Weapon((300, 300), "Sword", IMAGE_SWORD), Weapon((100, 100), "Axe", IMAGE_AXE) ]
+    weapon = [Weapon((300, 300), "Sword", IMAGE_SWORD, 25), Weapon((100, 100), "Axe", IMAGE_AXE, 30)]
 
     running = True
     while running:
@@ -292,25 +293,48 @@ def main():
 
                 if event.key == pygame.K_1:
                     if len(player.inventory) >= 1:
-                        player.equip_weapon = player.inventory[0]
-                        print ("Weapon Equipped")
+
+                        for w in player.inventory:
+                            w.equipped = False
+
+                        player.inventory[0].equipped = True
+                        player.equipped_weapon = player.inventory[0]
 
                 if event.key == pygame.K_2:
                     if len(player.inventory) >= 2:
-                        player.equip_weapon = player.inventory[1]
-                        print("Weapon 2 Equipped")
+
+                        for w in player.inventory:
+                            w.equipped = False
+
+                        player.inventory[1].equipped = True
+                        player.equipped_weapon = player.inventory[1]
 
                 if event.key == pygame.K_3:
                     if len(player.inventory) >= 3:
-                        player.equip_weapon = player.inventory[2]
+
+                        for w in player.inventory:
+                            w.equipped = False
+
+                        player.inventory[2].equipped = True
+                        player.equipped_weapon = player.inventory[2]
 
                 if event.key == pygame.K_4:
                     if len(player.inventory) >= 4:
-                        player.equip_weapon = player.inventory[3]
+
+                        for w in player.inventory:
+                            w.equipped = False
+
+                        player.inventory[3].equipped = True
+                        player.equipped_weapon = player.inventory[3]
 
                 if event.key == pygame.K_5:
                     if len(player.inventory) >= 5:
-                        player.equip_weapon = player.inventory[4]
+
+                        for w in player.inventory:
+                            w.equipped = False
+
+                        player.inventory[4].equipped = True
+                        player.equipped_weapon = player.inventory[4]
 
         keys = pygame.key.get_pressed()
         dx = 0
