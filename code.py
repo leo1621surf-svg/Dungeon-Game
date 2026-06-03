@@ -14,6 +14,7 @@ ENEMY_SPEED = 0.75
 TILE = 32
 FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
+FONT = pygame.font.SysFont(None, 25)
 
 #creates screen and sets up caption
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -179,6 +180,8 @@ class Player:
             weapon_x = self.rect.centerx + 3.5
             weapon_y = self.rect.centery - 10
 
+            self.equipped_weapon.rect.topleft = (weapon_x, weapon_y)
+
             surface.blit(self.equipped_weapon.image, (weapon_x, weapon_y))
 
 class Enemy:
@@ -190,6 +193,9 @@ class Enemy:
         self.y = float(self.rect.y)
         self.health = 100
         self.max_health = 100
+        self.enemy_cooldown = 60
+        self.text = ""
+        self.timer = 0
 
     def move(self, player, walls):
         dx = dy = 0
@@ -222,6 +228,12 @@ class Enemy:
                 elif dy < 0:
                     self.rect.top = wall.bottom
 
+        if self.enemy_cooldown > 0:
+            self.enemy_cooldown -= 1
+
+        if self.timer > 0:
+            self.timer -= 1
+
     def attack(self, player):
         if player.cooldown == 0 and self.rect.colliderect(player.rect):
             player.health -= 20
@@ -230,6 +242,11 @@ class Enemy:
 
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
+
+        if self.timer > 0:
+            text = FONT.render(self.text, True, (255,0 ,0))
+            surface.blit(text, (self.rect.centerx-text.get_width() //2, self.rect.top-20))
+
 
 class Weapon:
     def __init__(self, pos, name, image, damage):
@@ -357,6 +374,23 @@ def main():
         for enemy in enemies:
             enemy.move(player, walls)
             enemy.attack(player)
+
+        if player.equipped_weapon is not None:
+
+            for enemy in enemies:
+                if player.equipped_weapon.rect.colliderect(enemy.rect):
+                    if enemy.enemy_cooldown == 0:
+
+                        d = player.equipped_weapon.damage
+                        enemy.health -= d
+                        enemy.text = str(d)
+                        enemy.timer = 60
+                        print(enemy.health)
+                        enemy.enemy_cooldown = 60
+
+        for enemy in enemies[:]:
+            if enemy.health <= 0:
+                enemies.remove(enemy)
 
         for w in weapon:
             w.check_collect(player)

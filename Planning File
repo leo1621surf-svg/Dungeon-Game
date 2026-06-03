@@ -2,13 +2,11 @@ TO DO:
  - player goes through rooms avoiding enemies
  - to win player beats a # of rooms and defeats boss at the end
  - player progresses by clearing all enemies in the room
- - player defeats enemy with weapon
- - different weapons do different damage
  - enemies are all the same size
  - enemies get more difficult as the player goes through rooms
  - player can obtain a choice of power-ups after beating a room
  - power-up can increase max health
- - amount of damage done to an enemy is displayed above their heads
+
 
 DONE
  - enemies
@@ -17,3 +15,6 @@ DONE
  - player starts with 100 hp
  - enemies chase the player
  - cyclops takes away 20 health
+ - amount of damage done to an enemy is displayed above their heads
+ - player defeats enemy with weapon
+ - different weapons do different damage
