@@ -185,8 +185,8 @@ class Player:
             surface.blit(self.equipped_weapon.image, (weapon_x, weapon_y))
 
 class Enemy:
-    def __init__(self, pos):
-        self.image = ENEMY_IMAGES["cyclops"]
+    def __init__(self, pos, name, image):
+        self.image = image
         self.rect = self.image.get_rect(topleft = pos)
         self.speed = ENEMY_SPEED
         self.x = float(self.rect.x)
@@ -196,6 +196,7 @@ class Enemy:
         self.enemy_cooldown = 60
         self.text = ""
         self.timer = 0
+        self.name = name
 
     def move(self, player, walls):
         dx = dy = 0
@@ -293,7 +294,7 @@ def main():
         return
 
     player = Player((TILE, TILE))
-    enemies = [Enemy(pos) for pos in enemy_positions]
+    enemies = [Enemy((200, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((100, 400), "Ghost", ENEMY_IMAGES["ghost"])]
     weapon = [Weapon((300, 300), "Sword", IMAGE_SWORD, 25), Weapon((100, 100), "Axe", IMAGE_AXE, 30)]
 
     running = True

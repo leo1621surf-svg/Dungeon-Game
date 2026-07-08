@@ -18,3 +18,9 @@ DONE
  - amount of damage done to an enemy is displayed above their heads
  - player defeats enemy with weapon
  - different weapons do different damage
+
+
+ IDEAS:
+ - weapons are randomly generated based on rarity
+ - enemies have a range for where they can detect the player
+ - camera follows player in one big map
