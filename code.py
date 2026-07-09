@@ -197,19 +197,26 @@ class Enemy:
         self.text = ""
         self.timer = 0
         self.name = name
+        self.range = 125
 
     def move(self, player, walls):
         dx = dy = 0
 
-        if player.rect.centerx > self.rect.centerx:
-            dx = self.speed
-        elif player.rect.centerx < self.rect.centerx:
-            dx = -self.speed
+        x_distance = player.rect.centerx - self.rect.centerx
+        y_distance = player.rect.centery - self.rect.centery
+        distance = (x_distance**2 + y_distance**2) **0.5
 
-        if player.rect.centery > self.rect.centery:
-            dy = self.speed
-        elif player.rect.centery < self.rect.centery:
-            dy = -self.speed
+        if distance <= self.range:
+
+            if player.rect.centerx > self.rect.centerx:
+                dx = self.speed
+            elif player.rect.centerx < self.rect.centerx:
+                dx = -self.speed
+
+            if player.rect.centery > self.rect.centery:
+                dy = self.speed
+            elif player.rect.centery < self.rect.centery:
+                dy = -self.speed
 
         self.x += dx
         self.rect.x = int(self.x)

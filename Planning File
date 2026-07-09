@@ -6,6 +6,7 @@ TO DO:
  - enemies get more difficult as the player goes through rooms
  - player can obtain a choice of power-ups after beating a room
  - power-up can increase max health
+ - enemies have a range for where they can detect the player
 
 
 DONE
@@ -22,5 +23,4 @@ DONE
 
  IDEAS:
  - weapons are randomly generated based on rarity
- - enemies have a range for where they can detect the player
  - camera follows player in one big map
