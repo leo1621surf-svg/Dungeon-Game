@@ -2,11 +2,9 @@ TO DO:
  - player goes through rooms avoiding enemies
  - to win player beats a # of rooms and defeats boss at the end
  - player progresses by clearing all enemies in the room
- - enemies are all the same size
  - enemies get more difficult as the player goes through rooms
  - player can obtain a choice of power-ups after beating a room
  - power-up can increase max health
- - enemies have a range for where they can detect the player
 
 
 DONE
@@ -19,6 +17,8 @@ DONE
  - amount of damage done to an enemy is displayed above their heads
  - player defeats enemy with weapon
  - different weapons do different damage
+ - enemies have a range for where they can detect the player
+  - enemies are all the same size
 
 
  IDEAS:
