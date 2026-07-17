@@ -2,6 +2,7 @@
 import pygame
 import sys
 import os
+import json
 
 #initializer
 pygame.init()
@@ -53,6 +54,9 @@ IMAGE_SPOTS = scale(pygame.image.load(os.path.join(IMAGE_DIR, "spotted sand.png"
 IMAGE_SWORD = scale(pygame.image.load(os.path.join(IMAGE_DIR, "sword.png")), 1.3)
 IMAGE_AXE = scale(pygame.image.load(os.path.join(IMAGE_DIR, "axe.png")), 1.3)
 
+SPRITESHEET = pygame.image.load(os.path.join(IMAGE_DIR, "spritesheet.png")).convert_alpha()
+TILES_PER_ROW = SPRITESHEET.get_width() // TILE
+
 def load_level(number):
     path = os.path.join(MAP_DIR, f"level{number}.txt")
     print("looking for", path)
@@ -76,6 +80,12 @@ def load_level(number):
                 enemies.append((x, y))
 
     return level_map, walls, enemies
+
+def load_level_json():
+    path = os.path.join(MAP_DIR, "map.json")
+
+    with open(path, "r") as f:
+        return json.load(f)
 
 def draw_level(level_map):
     for row_index, row in enumerate(level_map):
@@ -106,6 +116,21 @@ def draw_level(level_map):
 
             elif char == "S":
                 screen.blit(IMAGE_SPOTS, (x, y))
+
+def draw_level_json(level_data):
+
+    for layer in level_data["layers"]:
+        for tile in layer["tiles"]:
+
+            x = tile["x"] * TILE
+            y = tile["y"] * TILE
+
+            tile_id = int(tile["id"]) - 1
+
+            source_x = (tile_id % TILES_PER_ROW) * TILE
+            source_y = (tile_id // TILES_PER_ROW) * TILE
+
+            screen.blit(SPRITESHEET, (x, y), (source_x, source_y, TILE, TILE))
 
 class Player:
     def __init__(self, pos):
@@ -294,6 +319,7 @@ def draw_health_bar(surface, player):
 def main():
     current_level = 1
     level_map, walls, enemy_positions = load_level(current_level)
+    json_level = load_level_json()
 
     if level_map is None:
         print ("level not found")
@@ -404,7 +430,8 @@ def main():
             w.check_collect(player)
 
 
-        draw_level(level_map)
+        #draw_level(level_map)
+        draw_level_json(json_level)
 
         for w in weapon:
             w.draw(screen)
