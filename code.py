@@ -8,14 +8,16 @@ import json
 pygame.init()
 
 #setup variables
-WIDTH, HEIGHT = 800, 640
-PLAYER_BASE_SPEED = 1.5
+WIDTH, HEIGHT = 1456, 1104
+PLAYER_BASE_SPEED = 5
 PLAYER_SPRINT_SPEED = 5
-ENEMY_SPEED = 0.75
+ENEMY_SPEED = 2.5
 TILE = 32
 FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
 FONT = pygame.font.SysFont(None, 25)
+SPRITESHEET_TILE = 16
+
 
 #creates screen and sets up caption
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -55,67 +57,26 @@ IMAGE_SWORD = scale(pygame.image.load(os.path.join(IMAGE_DIR, "sword.png")), 1.3
 IMAGE_AXE = scale(pygame.image.load(os.path.join(IMAGE_DIR, "axe.png")), 1.3)
 
 SPRITESHEET = pygame.image.load(os.path.join(IMAGE_DIR, "spritesheet.png")).convert_alpha()
-TILES_PER_ROW = SPRITESHEET.get_width() // TILE
-
-def load_level(number):
-    path = os.path.join(MAP_DIR, f"level{number}.txt")
-    print("looking for", path)
-
-    if not os.path.exists(path):
-        return None, None
-
-    with open(path, "r") as f:
-        level_map = [line.strip() for line in f.readlines()]
-
-    walls = []
-    enemies = []
-
-    for row_index, row in enumerate(level_map):
-        for column_index, char in enumerate(row):
-            x = column_index * TILE
-            y = row_index * TILE
-            if char == "#":
-                walls.append(pygame.Rect(x, y, TILE, TILE))
-            elif char == "e":
-                enemies.append((x, y))
-
-    return level_map, walls, enemies
+TILES_PER_ROW = SPRITESHEET.get_width() // SPRITESHEET_TILE
 
 def load_level_json():
     path = os.path.join(MAP_DIR, "map.json")
 
     with open(path, "r") as f:
-        return json.load(f)
+        level_data = json.load(f)
 
-def draw_level(level_map):
-    for row_index, row in enumerate(level_map):
-        for column_index, char in enumerate(row):
-            x = column_index * TILE
-            y = row_index * TILE
+    walls = []
 
-            screen.blit(IMAGE_SAND, (x, y))
+    for layer in level_data["layers"]:
+        if layer["name"] == "Walls":
+            for tile in layer["tiles"]:
+                x = tile["x"] * TILE
+                y = tile["y"] * TILE
 
-            if char == "#":
-                screen.blit(IMAGE_WALL, (x, y))
+                walls.append(pygame.Rect(x, y, TILE, TILE))
+                print(len(walls))
 
-            elif char == "D":
-                screen.blit(IMAGE_DOOR, (x, y))
-
-            elif char == "B":
-                screen.blit(IMAGE_BARREL, (x, y))
-
-            elif char == "T":
-                screen.blit(IMAGE_TOP, (x, y))
-
-            elif char == "L":
-                rotated = pygame.transform.rotate(IMAGE_TOP_LEFT, 90)
-                screen.blit(rotated, (x, y))
-
-            elif char == "C":
-                screen.blit(IMAGE_CORNER, (x, y))
-
-            elif char == "S":
-                screen.blit(IMAGE_SPOTS, (x, y))
+    return level_data, walls
 
 def draw_level_json(level_data):
 
@@ -125,12 +86,14 @@ def draw_level_json(level_data):
             x = tile["x"] * TILE
             y = tile["y"] * TILE
 
-            tile_id = int(tile["id"]) - 1
+            tile_id = int(tile["id"])
 
-            source_x = (tile_id % TILES_PER_ROW) * TILE
-            source_y = (tile_id // TILES_PER_ROW) * TILE
+            source_x = (tile_id % TILES_PER_ROW) * SPRITESHEET_TILE
+            source_y = (tile_id // TILES_PER_ROW) * SPRITESHEET_TILE
 
-            screen.blit(SPRITESHEET, (x, y), (source_x, source_y, TILE, TILE))
+            tile_image = SPRITESHEET.subsurface(pygame.Rect(source_x, source_y, SPRITESHEET_TILE, SPRITESHEET_TILE))
+            tile_image = pygame.transform.scale(tile_image, (TILE, TILE))
+            screen.blit(tile_image, (x, y))
 
 class Player:
     def __init__(self, pos):
@@ -269,7 +232,7 @@ class Enemy:
 
     def attack(self, player):
         if player.cooldown == 0 and self.rect.colliderect(player.rect):
-            player.health -= 20
+            player.health -= 10
             player.health = max(player.health, 0)
             player.cooldown = 180
 
@@ -317,16 +280,13 @@ def draw_health_bar(surface, player):
     pygame.draw.rect(surface, (255, 255, 255), (x, y, width, height), 2)
 
 def main():
-    current_level = 1
-    level_map, walls, enemy_positions = load_level(current_level)
-    json_level = load_level_json()
 
-    if level_map is None:
-        print ("level not found")
-        pygame.quit()
-        return
+    json_level, walls = load_level_json()
 
-    player = Player((TILE, TILE))
+    player = Player((75, 75))
+    for wall in walls:
+        if player.rect.colliderect(wall):
+            print("spawned in a wall")
     enemies = [Enemy((200, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((100, 400), "Ghost", ENEMY_IMAGES["ghost"])]
     weapon = [Weapon((300, 300), "Sword", IMAGE_SWORD, 25), Weapon((100, 100), "Axe", IMAGE_AXE, 30)]
 
@@ -429,8 +389,6 @@ def main():
         for w in weapon:
             w.check_collect(player)
 
-
-        #draw_level(level_map)
         draw_level_json(json_level)
 
         for w in weapon:
