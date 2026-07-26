@@ -59,6 +59,9 @@ IMAGE_AXE = scale(pygame.image.load(os.path.join(IMAGE_DIR, "axe.png")), 1.3)
 SPRITESHEET = pygame.image.load(os.path.join(IMAGE_DIR, "spritesheet.png")).convert_alpha()
 TILES_PER_ROW = SPRITESHEET.get_width() // SPRITESHEET_TILE
 
+MAP_WIDTH = 0
+MAP_HEIGHT = 0
+
 def load_level_json():
     path = os.path.join(MAP_DIR, "map.json")
 
@@ -78,7 +81,7 @@ def load_level_json():
 
     return level_data, walls
 
-def draw_level_json(level_data):
+def draw_level_json(level_data, camera_x, camera_y):
 
     for layer in level_data["layers"]:
         for tile in layer["tiles"]:
@@ -93,7 +96,7 @@ def draw_level_json(level_data):
 
             tile_image = SPRITESHEET.subsurface(pygame.Rect(source_x, source_y, SPRITESHEET_TILE, SPRITESHEET_TILE))
             tile_image = pygame.transform.scale(tile_image, (TILE, TILE))
-            screen.blit(tile_image, (x, y))
+            screen.blit(tile_image, (x - camera_x, y - camera_y))
 
 class Player:
     def __init__(self, pos):
@@ -161,8 +164,8 @@ class Player:
             self.direction = "up"
         self.image = PLAYER_IMAGES[self.direction]
 
-    def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
+    def draw(self, surface, camera_x, camera_y):
+        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
 
         if self.equipped_weapon is not None:
             weapon_x = self.rect.centerx + 3.5
@@ -170,7 +173,7 @@ class Player:
 
             self.equipped_weapon.rect.topleft = (weapon_x, weapon_y)
 
-            surface.blit(self.equipped_weapon.image, (weapon_x, weapon_y))
+            surface.blit(self.equipped_weapon.image, (weapon_x - camera_x, weapon_y - camera_y))
 
 class Enemy:
     def __init__(self, pos, name, image):
@@ -214,6 +217,7 @@ class Enemy:
                     self.rect.right = wall.left
                 elif dx < 0:
                     self.rect.left = wall.right
+                self.x = self.rect.x
 
         self.y += dy
         self.rect.y = int(self.y)
@@ -223,6 +227,7 @@ class Enemy:
                     self.rect.bottom = wall.top
                 elif dy < 0:
                     self.rect.top = wall.bottom
+                self.y = self.rect.y
 
         if self.enemy_cooldown > 0:
             self.enemy_cooldown -= 1
@@ -236,12 +241,12 @@ class Enemy:
             player.health = max(player.health, 0)
             player.cooldown = 180
 
-    def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
+    def draw(self, surface, camera_x, camera_y):
+        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
 
         if self.timer > 0:
             text = FONT.render(self.text, True, (255,0 ,0))
-            surface.blit(text, (self.rect.centerx-text.get_width() //2, self.rect.top-20))
+            surface.blit(text, (self.rect.centerx - camera_x - text.get_width() //2, self.rect.top - camera_y - 20))
 
 
 class Weapon:
@@ -263,9 +268,9 @@ class Weapon:
             if player.equipped_weapon is None:
                 player.equipped_weapon = self
 
-    def draw(self, surface):
+    def draw(self, surface, camera_x, camera_y):
         if not self.collected:
-            surface.blit(self.image, self.rect.topleft)
+            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
 
 def draw_health_bar(surface, player):
     width = 200
@@ -283,12 +288,17 @@ def main():
 
     json_level, walls = load_level_json()
 
+    global MAP_WIDTH, MAP_HEIGHT
+    MAP_WIDTH = json_level["mapWidth"]
+    MAP_HEIGHT = json_level["mapHeight"]
+
     player = Player((75, 75))
-    for wall in walls:
-        if player.rect.colliderect(wall):
-            print("spawned in a wall")
-    enemies = [Enemy((200, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((100, 400), "Ghost", ENEMY_IMAGES["ghost"])]
-    weapon = [Weapon((300, 300), "Sword", IMAGE_SWORD, 25), Weapon((100, 100), "Axe", IMAGE_AXE, 30)]
+
+    camera_x = 0
+    camera_y = 0
+
+    enemies = [Enemy((200, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((1000, 400), "Ghost", ENEMY_IMAGES["ghost"])]
+    weapon = [Weapon((300, 100), "Sword", IMAGE_SWORD, 25), Weapon((75, 550), "Axe", IMAGE_AXE, 30)]
 
     running = True
     while running:
@@ -362,6 +372,12 @@ def main():
 
         player.move(dx, dy, walls)
 
+        camera_x = player.rect.centerx - WIDTH // 2
+        camera_y = player.rect.centery - HEIGHT // 2
+
+        camera_x = max(0, min(camera_x, MAP_WIDTH - WIDTH))
+        camera_y = max(0, min(camera_y, MAP_HEIGHT - HEIGHT))
+
         if player.cooldown > 0:
             player.cooldown -= 1
 
@@ -389,15 +405,15 @@ def main():
         for w in weapon:
             w.check_collect(player)
 
-        draw_level_json(json_level)
+        draw_level_json(json_level, camera_x, camera_y)
 
         for w in weapon:
-            w.draw(screen)
+            w.draw(screen, camera_x, camera_y)
 
-        player.draw(screen)
+        player.draw(screen, camera_x, camera_y)
 
         for enemy in enemies:
-            enemy.draw(screen)
+            enemy.draw(screen, camera_x, camera_y)
 
         draw_health_bar(screen, player)
 

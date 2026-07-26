@@ -6,7 +6,7 @@ TO DO:
  - player can obtain a choice of power-ups after beating a room
  - power-up can increase max health
  - player unlocks different rooms/sections of the map by defeating enemies
-
+ - camera follows player in one big map
 
 DONE
  - enemies
@@ -14,7 +14,7 @@ DONE
  - if an enemy touches a player, they lose amount of damage assigned to that enemy
  - player starts with 100 hp
  - enemies chase the player
- - cyclops takes away 20 health
+ - cyclops takes away 10 health
  - amount of damage done to an enemy is displayed above their heads
  - player defeats enemy with weapon
  - different weapons do different damage
@@ -24,4 +24,3 @@ DONE
 
  IDEAS:
  - weapons are randomly generated based on rarity
- - camera follows player in one big map
