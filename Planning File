@@ -7,6 +7,7 @@ TO DO:
  - power-up can increase max health
  - player unlocks different rooms/sections of the map by defeating enemies
  - camera follows player in one big map
+ - player dies when they run out of health
 
 DONE
  - enemies

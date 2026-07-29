@@ -8,8 +8,8 @@ import json
 pygame.init()
 
 #setup variables
-WIDTH, HEIGHT = 1456, 1104
-PLAYER_BASE_SPEED = 5
+WIDTH, HEIGHT = 910, 690#728, 552
+PLAYER_BASE_SPEED = 4
 PLAYER_SPRINT_SPEED = 5
 ENEMY_SPEED = 2.5
 TILE = 32
@@ -77,7 +77,6 @@ def load_level_json():
                 y = tile["y"] * TILE
 
                 walls.append(pygame.Rect(x, y, TILE, TILE))
-                print(len(walls))
 
     return level_data, walls
 
@@ -114,6 +113,7 @@ class Player:
         self.cooldown = 0
         self.inventory = []
         self.equipped_weapon = None
+        self.alive = True
 
     def move(self, dx, dy, walls):
 
@@ -148,7 +148,11 @@ class Player:
                 self.feet.centerx = self.rect.centerx
                 self.feet.bottom = self.rect.bottom
 
-        self.rect.clamp_ip(screen.get_rect())
+        self.rect.clamp_ip(pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))
+
+        self.x = self.rect.x
+        self.y = self.rect.y
+
         self.feet.centerx = self.rect.centerx
         self.feet.bottom = self.rect.bottom
 
@@ -289,8 +293,8 @@ def main():
     json_level, walls = load_level_json()
 
     global MAP_WIDTH, MAP_HEIGHT
-    MAP_WIDTH = json_level["mapWidth"]
-    MAP_HEIGHT = json_level["mapHeight"]
+    MAP_WIDTH = json_level["mapWidth"] * TILE
+    MAP_HEIGHT = json_level["mapHeight"] * TILE
 
     player = Player((75, 75))
 
@@ -298,7 +302,7 @@ def main():
     camera_y = 0
 
     enemies = [Enemy((200, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((1000, 400), "Ghost", ENEMY_IMAGES["ghost"])]
-    weapon = [Weapon((300, 100), "Sword", IMAGE_SWORD, 25), Weapon((75, 550), "Axe", IMAGE_AXE, 30)]
+    weapon = [Weapon((300, 100), "Sword", IMAGE_SWORD, 25), Weapon((100, 550), "Axe", IMAGE_AXE, 30)]
 
     running = True
     while running:
@@ -385,6 +389,9 @@ def main():
             enemy.move(player, walls)
             enemy.attack(player)
 
+        if player.health <= 0:
+            player.alive = False
+
         if player.equipped_weapon is not None:
 
             for enemy in enemies:
@@ -410,7 +417,8 @@ def main():
         for w in weapon:
             w.draw(screen, camera_x, camera_y)
 
-        player.draw(screen, camera_x, camera_y)
+        if player.alive:
+            player.draw(screen, camera_x, camera_y)
 
         for enemy in enemies:
             enemy.draw(screen, camera_x, camera_y)
