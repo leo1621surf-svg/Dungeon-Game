@@ -69,8 +69,10 @@ def load_level_json():
         level_data = json.load(f)
 
     walls = []
+    checkpoints = []
 
     for layer in level_data["layers"]:
+
         if layer["name"] == "Walls":
             for tile in layer["tiles"]:
                 x = tile["x"] * TILE
@@ -78,7 +80,15 @@ def load_level_json():
 
                 walls.append(pygame.Rect(x, y, TILE, TILE))
 
-    return level_data, walls
+        if layer["name"] == "Checkpoints":
+            for tile in layer["tiles"]:
+                x = tile["x"] * TILE
+                y = tile["y"] * TILE
+
+                checkpoints.append(pygame.Rect(x, y, TILE, TILE))
+
+
+    return level_data, walls, checkpoints
 
 def draw_level_json(level_data, camera_x, camera_y):
 
@@ -114,6 +124,8 @@ class Player:
         self.inventory = []
         self.equipped_weapon = None
         self.alive = True
+        self.current_checkpoint = 0
+        self.spawn_point = (75, 75)
 
     def move(self, dx, dy, walls):
 
@@ -241,7 +253,7 @@ class Enemy:
 
     def attack(self, player):
         if player.cooldown == 0 and self.rect.colliderect(player.rect):
-            player.health -= 10
+            player.health -= 25
             player.health = max(player.health, 0)
             player.cooldown = 180
 
@@ -290,7 +302,7 @@ def draw_health_bar(surface, player):
 
 def main():
 
-    json_level, walls = load_level_json()
+    json_level, walls, checkpoints = load_level_json()
 
     global MAP_WIDTH, MAP_HEIGHT
     MAP_WIDTH = json_level["mapWidth"] * TILE
@@ -375,6 +387,14 @@ def main():
             dy = -player.speed
 
         player.move(dx, dy, walls)
+
+        if player.current_checkpoint < len(checkpoints):
+            if player.rect.colliderect(checkpoints[player.current_checkpoint]):
+                print("touched checkpoint")
+                player.current_checkpoint += 1
+
+        for checkpoint in checkpoints:
+            pygame.draw.rect(screen, (255, 0, 0), (checkpoint.x - camera_x, checkpoint.y - camera_y, TILE, TILE), 2)
 
         camera_x = player.rect.centerx - WIDTH // 2
         camera_y = player.rect.centery - HEIGHT // 2
