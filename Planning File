@@ -6,8 +6,6 @@ TO DO:
  - player can obtain a choice of power-ups after beating a room
  - power-up can increase max health
  - player unlocks different rooms/sections of the map by defeating enemies
- - camera follows player in one big map
- - player dies when they run out of health
 
 DONE
  - enemies
@@ -20,7 +18,9 @@ DONE
  - player defeats enemy with weapon
  - different weapons do different damage
  - enemies have a range for where they can detect the player
-  - enemies are all the same size
+ - enemies are all the same size
+ - player dies when they run out of health
+ - camera follows player in one big map
 
 
  IDEAS:

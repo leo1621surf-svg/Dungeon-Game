@@ -124,7 +124,6 @@ class Player:
         self.inventory = []
         self.equipped_weapon = None
         self.alive = True
-        self.current_checkpoint = 0
         self.spawn_point = (75, 75)
 
     def move(self, dx, dy, walls):
@@ -313,7 +312,8 @@ def main():
     camera_x = 0
     camera_y = 0
 
-    enemies = [Enemy((200, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((1000, 400), "Ghost", ENEMY_IMAGES["ghost"])]
+    enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((1000, 400), "Ghost", ENEMY_IMAGES["ghost"]),
+               Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"])]
     weapon = [Weapon((300, 100), "Sword", IMAGE_SWORD, 25), Weapon((100, 550), "Axe", IMAGE_AXE, 30)]
 
     running = True
@@ -388,10 +388,9 @@ def main():
 
         player.move(dx, dy, walls)
 
-        if player.current_checkpoint < len(checkpoints):
-            if player.rect.colliderect(checkpoints[player.current_checkpoint]):
-                print("touched checkpoint")
-                player.current_checkpoint += 1
+        for checkpoint in checkpoints:
+            if player.rect.colliderect(checkpoint):
+                player.spawn_point = (checkpoint.centerx - player.rect.width // 2,checkpoint.centery - player.rect.height // 2)
 
         for checkpoint in checkpoints:
             pygame.draw.rect(screen, (255, 0, 0), (checkpoint.x - camera_x, checkpoint.y - camera_y, TILE, TILE), 2)
@@ -410,7 +409,15 @@ def main():
             enemy.attack(player)
 
         if player.health <= 0:
-            player.alive = False
+            player.health = player.max_health * 0.75
+
+            player.rect.topleft = player.spawn_point
+            player.x = player.rect.x
+            player.y = player.rect.y
+
+            player.feet.centerx = player.rect.centerx
+            player.feet.bottom = player.rect.bottom
+
 
         if player.equipped_weapon is not None:
 
@@ -422,7 +429,6 @@ def main():
                         enemy.health -= d
                         enemy.text = str(d)
                         enemy.timer = 60
-                        print(enemy.health)
                         enemy.enemy_cooldown = 60
 
         for enemy in enemies[:]:
