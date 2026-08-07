@@ -1,4 +1,3 @@
-
 import pygame
 import sys
 import os
@@ -70,6 +69,8 @@ def load_level_json():
 
     walls = []
     checkpoints = []
+    locks = []
+    doors = []
 
     for layer in level_data["layers"]:
 
@@ -87,12 +88,30 @@ def load_level_json():
 
                 checkpoints.append(pygame.Rect(x, y, TILE, TILE))
 
+        if layer["name"] == "Locks":
+            for tile in layer["tiles"]:
+                x = tile["x"] * TILE
+                y = tile["y"] * TILE
 
-    return level_data, walls, checkpoints
+                locks.append(pygame.Rect(x, y, TILE, TILE))
+
+        if layer["name"] == "Doors":
+            for tile in layer["tiles"]:
+                x = tile["x"] * TILE
+                y = tile["y"] * TILE
+
+                doors.append(pygame.Rect(x, y, TILE, TILE))
+
+
+    return level_data, walls, checkpoints, locks, doors
 
 def draw_level_json(level_data, camera_x, camera_y):
 
     for layer in level_data["layers"]:
+
+        if layer["name"] == "Doors":
+            continue
+
         for tile in layer["tiles"]:
 
             x = tile["x"] * TILE
@@ -106,6 +125,27 @@ def draw_level_json(level_data, camera_x, camera_y):
             tile_image = SPRITESHEET.subsurface(pygame.Rect(source_x, source_y, SPRITESHEET_TILE, SPRITESHEET_TILE))
             tile_image = pygame.transform.scale(tile_image, (TILE, TILE))
             screen.blit(tile_image, (x - camera_x, y - camera_y))
+
+
+def draw_doors(level_data, camera_x, camera_y):
+    for layer in level_data["layers"]:
+
+        if layer["name"] != "Doors":
+            continue
+
+        for tile in layer["tiles"]:
+            x = tile["x"] * TILE
+            y = tile["y"] * TILE
+
+            tile_id = int(tile["id"])
+
+            source_x = (tile_id % TILES_PER_ROW) * SPRITESHEET_TILE
+            source_y = (tile_id // TILES_PER_ROW) * SPRITESHEET_TILE
+
+            tile_image = SPRITESHEET.subsurface(pygame.Rect(source_x, source_y, SPRITESHEET_TILE, SPRITESHEET_TILE))
+            tile_image = pygame.transform.scale(tile_image, (TILE, TILE))
+            screen.blit(tile_image, (x - camera_x, y - camera_y))
+
 
 class Player:
     def __init__(self, pos):
@@ -124,7 +164,8 @@ class Player:
         self.inventory = []
         self.equipped_weapon = None
         self.alive = True
-        self.spawn_point = (75, 75)
+        self.spawn_point = (1060, 130)
+        self.weapon_side = "right"
 
     def move(self, dx, dy, walls):
 
@@ -183,8 +224,12 @@ class Player:
         surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
 
         if self.equipped_weapon is not None:
-            weapon_x = self.rect.centerx + 3.5
             weapon_y = self.rect.centery - 10
+
+            if self.weapon_side == "right":
+                weapon_x = self.rect.centerx + 3.5
+            else:
+                weapon_x = self.rect.left - self.equipped_weapon.rect.width + 10
 
             self.equipped_weapon.rect.topleft = (weapon_x, weapon_y)
 
@@ -301,19 +346,32 @@ def draw_health_bar(surface, player):
 
 def main():
 
-    json_level, walls, checkpoints = load_level_json()
+    json_level, walls, checkpoints, locks, doors = load_level_json()
 
     global MAP_WIDTH, MAP_HEIGHT
     MAP_WIDTH = json_level["mapWidth"] * TILE
     MAP_HEIGHT = json_level["mapHeight"] * TILE
 
-    player = Player((75, 75))
+    current_room = 1
+    room_cleared = False
+
+    player = Player((1060, 130))
 
     camera_x = 0
     camera_y = 0
 
-    enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((1000, 400), "Ghost", ENEMY_IMAGES["ghost"]),
-               Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"]), Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"])]
+    room_one_enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"]),Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"]),
+                        Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"])]
+    room_two_enemies = [Enemy((100, 1250), "Ghost", ENEMY_IMAGES["ghost"])]
+    room_three_enemies = []
+    room_four_enemies = []
+    room_five_enemies = []
+    room_six_enemies = []
+    room_seven_enemies = []
+    room_eight_enemies = []
+    room_nine_enemies = []
+    room_ten_enemies = []
+
     weapon = [Weapon((300, 100), "Sword", IMAGE_SWORD, 25), Weapon((100, 550), "Axe", IMAGE_AXE, 30)]
 
     running = True
@@ -373,6 +431,12 @@ def main():
                         player.inventory[4].equipped = True
                         player.equipped_weapon = player.inventory[4]
 
+                if event.key == pygame.K_q:
+                    if player.weapon_side == "right":
+                        player.weapon_side = "left"
+                    else:
+                        player.weapon_side = "right"
+
         keys = pygame.key.get_pressed()
         dx = 0
         dy = 0
@@ -386,7 +450,12 @@ def main():
         if keys[pygame.K_w]:
             dy = -player.speed
 
-        player.move(dx, dy, walls)
+        collision_rects = walls.copy()
+
+        if not doors_open:
+            collsion_rects.extend(doors)
+
+        player.move(dx, dy, collision_rects)
 
         for checkpoint in checkpoints:
             if player.rect.colliderect(checkpoint):
@@ -403,6 +472,27 @@ def main():
 
         if player.cooldown > 0:
             player.cooldown -= 1
+
+        if current_room == 1:
+            enemies = room_one_enemies
+        elif current_room == 2:
+            enemies = room_two_enemies
+        elif current_room == 3:
+            enemies = room_three_enemies
+        elif current_room == 4:
+            enemies = room_four_enemies
+        elif current_room == 5:
+            enemies = room_five_enemies
+        elif current_room == 6:
+            enemies = room_six_enemies
+        elif current_room == 7:
+            enemies = room_seven_enemies
+        elif current_room == 8:
+            enemies = room_eight_enemies
+        elif current_room == 9:
+            enemies = room_nine_enemies
+        else:
+            enemies = room_ten_enemies
 
         for enemy in enemies:
             enemy.move(player, walls)
@@ -435,6 +525,11 @@ def main():
             if enemy.health <= 0:
                 enemies.remove(enemy)
 
+        if len(enemies) == 0:
+            room_cleared = True
+        else:
+            room_cleared = False
+
         for w in weapon:
             w.check_collect(player)
 
@@ -445,6 +540,8 @@ def main():
 
         if player.alive:
             player.draw(screen, camera_x, camera_y)
+
+        draw_doors(json_level, camera_x, camera_y)
 
         for enemy in enemies:
             enemy.draw(screen, camera_x, camera_y)
