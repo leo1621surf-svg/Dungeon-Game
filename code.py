@@ -69,8 +69,9 @@ def load_level_json():
 
     walls = []
     checkpoints = []
-    locks = []
+    unlocks = []
     doors = []
+    locks = []
 
     for layer in level_data["layers"]:
 
@@ -88,12 +89,12 @@ def load_level_json():
 
                 checkpoints.append(pygame.Rect(x, y, TILE, TILE))
 
-        if layer["name"] == "Locks":
+        if layer["name"] == "Unlocks":
             for tile in layer["tiles"]:
                 x = tile["x"] * TILE
                 y = tile["y"] * TILE
 
-                locks.append(pygame.Rect(x, y, TILE, TILE))
+                unlocks.append(pygame.Rect(x, y, TILE, TILE))
 
         if layer["name"] == "Doors":
             for tile in layer["tiles"]:
@@ -102,8 +103,15 @@ def load_level_json():
 
                 doors.append(pygame.Rect(x, y, TILE, TILE))
 
+        if layer["name"] == "Locks":
+            for tile in layer["tiles"]:
+                x = tile["x"] * TILE
+                y = tile["y"] * TILE
 
-    return level_data, walls, checkpoints, locks, doors
+                locks.append(pygame.Rect(x, y, TILE, TILE))
+
+
+    return level_data, walls, checkpoints, unlocks, doors, locks
 
 def draw_level_json(level_data, camera_x, camera_y):
 
@@ -346,7 +354,7 @@ def draw_health_bar(surface, player):
 
 def main():
 
-    json_level, walls, checkpoints, locks, doors = load_level_json()
+    json_level, walls, checkpoints, unlocks, doors, locks = load_level_json()
 
     global MAP_WIDTH, MAP_HEIGHT
     MAP_WIDTH = json_level["mapWidth"] * TILE
@@ -356,6 +364,7 @@ def main():
     room_cleared = False
 
     player = Player((1060, 130))
+    doors_open = False
 
     camera_x = 0
     camera_y = 0
@@ -453,7 +462,7 @@ def main():
         collision_rects = walls.copy()
 
         if not doors_open:
-            collsion_rects.extend(doors)
+            collision_rects.extend(doors)
 
         player.move(dx, dy, collision_rects)
 
@@ -493,6 +502,19 @@ def main():
             enemies = room_nine_enemies
         else:
             enemies = room_ten_enemies
+
+        if len(enemies) == 0:
+            for unlock in unlocks:
+                if player.rect.colliderect(unlock):
+                    doors_open = True
+                    print("unlocked")
+
+        if doors_open:
+            for lock in locks:
+                if player.rect.colliderect(lock):
+                    doors_open = False
+                    current_room += 1
+                    print("door locked")
 
         for enemy in enemies:
             enemy.move(player, walls)
