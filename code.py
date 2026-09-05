@@ -305,7 +305,7 @@ class Enemy:
 
     def attack(self, player):
         if player.cooldown == 0 and self.rect.colliderect(player.rect):
-            player.health -= 25
+            player.health -= 15
             player.health = max(player.health, 0)
             player.cooldown = 180
 
@@ -371,7 +371,7 @@ def main():
 
     room_one_enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"]),Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"]),
                         Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"])]
-    room_two_enemies = [Enemy((100, 1250), "Ghost", ENEMY_IMAGES["ghost"])]
+    room_two_enemies = [Enemy((100, 1250), "Ghost", ENEMY_IMAGES["ghost"]), Enemy((500, 1250), "Ghost", ENEMY_IMAGES["ghost"])]
     room_three_enemies = []
     room_four_enemies = []
     room_five_enemies = []
@@ -381,7 +381,7 @@ def main():
     room_nine_enemies = []
     room_ten_enemies = []
 
-    weapon = [Weapon((300, 100), "Sword", IMAGE_SWORD, 25), Weapon((100, 550), "Axe", IMAGE_AXE, 30)]
+    weapon = [Weapon((300, 100), "Sword", IMAGE_SWORD, 25), Weapon((100, 550), "Axe", IMAGE_AXE, 35)]
 
     running = True
     while running:
@@ -511,7 +511,7 @@ def main():
 
         if doors_open:
             for lock in locks:
-                if player.rect.colliderect(lock):
+                if lock.contains(player.rect):
                     doors_open = False
                     current_room += 1
                     print("door locked")
