@@ -5,9 +5,9 @@ TO DO:
  - enemies get more difficult as the player goes through rooms
  - player can obtain a choice of power-ups after beating a room
  - power-up can increase max health
- - player unlocks different rooms/sections of the map by defeating enemies
  - enemies have different characteristics
  - each room has one type of enemy
+**Tile lock issue**
 
 DONE
  - enemies
@@ -23,7 +23,7 @@ DONE
  - enemies are all the same size
  - player dies when they run out of health
  - camera follows player in one big map
-
+ - player unlocks different rooms/sections of the map by defeating enemies
 
  IDEAS:
  - weapons are randomly generated based on rarity

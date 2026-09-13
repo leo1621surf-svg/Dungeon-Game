@@ -15,6 +15,7 @@ TILE = 32
 FEET_W, FEET_H = 24, 6
 LAST_LEVEL = 10
 FONT = pygame.font.SysFont(None, 25)
+POWERUP_FONT = pygame.font.SysFont(None, 35)
 SPRITESHEET_TILE = 16
 
 
@@ -352,6 +353,14 @@ def draw_health_bar(surface, player):
     pygame.draw.rect(surface, (0, 200, 0), (x, y, width * ratio, height))
     pygame.draw.rect(surface, (255, 255, 255), (x, y, width, height), 2)
 
+def draw_powerup_menu(surface):
+    width, height = 450, 300
+    x = (WIDTH - width) // 2
+    y = (HEIGHT - height) // 2
+    rectangle = pygame.Rect(x, y, width, height)
+
+    pygame.draw.rect(surface, (0, 0, 0), rectangle)
+
 def main():
 
     json_level, walls, checkpoints, unlocks, doors, locks = load_level_json()
@@ -365,6 +374,9 @@ def main():
 
     player = Player((1060, 130))
     doors_open = False
+
+    game_state = "Playing"
+    powerup_claimed = False
 
     camera_x = 0
     camera_y = 0
@@ -393,167 +405,188 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-            if event.type == pygame.KEYDOWN:
+            if game_state == "Playing":
+                if event.type == pygame.KEYDOWN:
 
-                if event.key == pygame.K_1:
-                    if len(player.inventory) >= 1:
+                    if event.key == pygame.K_1:
+                        if len(player.inventory) >= 1:
 
-                        for w in player.inventory:
-                            w.equipped = False
+                            for w in player.inventory:
+                                w.equipped = False
 
-                        player.inventory[0].equipped = True
-                        player.equipped_weapon = player.inventory[0]
+                            player.inventory[0].equipped = True
+                            player.equipped_weapon = player.inventory[0]
 
-                if event.key == pygame.K_2:
-                    if len(player.inventory) >= 2:
+                    if event.key == pygame.K_2:
+                        if len(player.inventory) >= 2:
 
-                        for w in player.inventory:
-                            w.equipped = False
+                            for w in player.inventory:
+                                w.equipped = False
 
-                        player.inventory[1].equipped = True
-                        player.equipped_weapon = player.inventory[1]
+                            player.inventory[1].equipped = True
+                            player.equipped_weapon = player.inventory[1]
 
-                if event.key == pygame.K_3:
-                    if len(player.inventory) >= 3:
+                    if event.key == pygame.K_3:
+                        if len(player.inventory) >= 3:
 
-                        for w in player.inventory:
-                            w.equipped = False
+                            for w in player.inventory:
+                                w.equipped = False
 
-                        player.inventory[2].equipped = True
-                        player.equipped_weapon = player.inventory[2]
+                            player.inventory[2].equipped = True
+                            player.equipped_weapon = player.inventory[2]
 
-                if event.key == pygame.K_4:
-                    if len(player.inventory) >= 4:
+                    if event.key == pygame.K_4:
+                        if len(player.inventory) >= 4:
 
-                        for w in player.inventory:
-                            w.equipped = False
+                            for w in player.inventory:
+                                w.equipped = False
 
-                        player.inventory[3].equipped = True
-                        player.equipped_weapon = player.inventory[3]
+                            player.inventory[3].equipped = True
+                            player.equipped_weapon = player.inventory[3]
 
-                if event.key == pygame.K_5:
-                    if len(player.inventory) >= 5:
+                    if event.key == pygame.K_5:
+                        if len(player.inventory) >= 5:
 
-                        for w in player.inventory:
-                            w.equipped = False
+                            for w in player.inventory:
+                                w.equipped = False
 
-                        player.inventory[4].equipped = True
-                        player.equipped_weapon = player.inventory[4]
+                            player.inventory[4].equipped = True
+                            player.equipped_weapon = player.inventory[4]
 
-                if event.key == pygame.K_q:
-                    if player.weapon_side == "right":
-                        player.weapon_side = "left"
-                    else:
-                        player.weapon_side = "right"
+                    if event.key == pygame.K_q:
+                        if player.weapon_side == "right":
+                            player.weapon_side = "left"
+                        else:
+                            player.weapon_side = "right"
 
-        keys = pygame.key.get_pressed()
-        dx = 0
-        dy = 0
+            elif game_state == "Powerup_Choice":
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pass
 
-        if keys[pygame.K_a]:
-            dx = -player.speed
-        if keys[pygame.K_d]:
-            dx = player.speed
-        if keys[pygame.K_s]:
-            dy = player.speed
-        if keys[pygame.K_w]:
-            dy = -player.speed
+        if game_state == "Playing":
 
-        collision_rects = walls.copy()
+            keys = pygame.key.get_pressed()
+            dx = 0
+            dy = 0
 
-        if not doors_open:
-            collision_rects.extend(doors)
+            if keys[pygame.K_a]:
+                dx = -player.speed
+            if keys[pygame.K_d]:
+                dx = player.speed
+            if keys[pygame.K_s]:
+                dy = player.speed
+            if keys[pygame.K_w]:
+                dy = -player.speed
 
-        player.move(dx, dy, collision_rects)
+            collision_rects = walls.copy()
 
-        for checkpoint in checkpoints:
-            if player.rect.colliderect(checkpoint):
-                player.spawn_point = (checkpoint.centerx - player.rect.width // 2,checkpoint.centery - player.rect.height // 2)
+            if not doors_open:
+                collision_rects.extend(doors)
 
-        for checkpoint in checkpoints:
-            pygame.draw.rect(screen, (255, 0, 0), (checkpoint.x - camera_x, checkpoint.y - camera_y, TILE, TILE), 2)
+            player.move(dx, dy, collision_rects)
 
-        camera_x = player.rect.centerx - WIDTH // 2
-        camera_y = player.rect.centery - HEIGHT // 2
+            for checkpoint in checkpoints:
+                if player.rect.colliderect(checkpoint):
+                    player.spawn_point = (checkpoint.centerx - player.rect.width // 2,checkpoint.centery - player.rect.height // 2)
 
-        camera_x = max(0, min(camera_x, MAP_WIDTH - WIDTH))
-        camera_y = max(0, min(camera_y, MAP_HEIGHT - HEIGHT))
+            for checkpoint in checkpoints:
+                pygame.draw.rect(screen, (255, 0, 0), (checkpoint.x - camera_x, checkpoint.y - camera_y, TILE, TILE), 2)
 
-        if player.cooldown > 0:
-            player.cooldown -= 1
+            camera_x = player.rect.centerx - WIDTH // 2
+            camera_y = player.rect.centery - HEIGHT // 2
 
-        if current_room == 1:
-            enemies = room_one_enemies
-        elif current_room == 2:
-            enemies = room_two_enemies
-        elif current_room == 3:
-            enemies = room_three_enemies
-        elif current_room == 4:
-            enemies = room_four_enemies
-        elif current_room == 5:
-            enemies = room_five_enemies
-        elif current_room == 6:
-            enemies = room_six_enemies
-        elif current_room == 7:
-            enemies = room_seven_enemies
-        elif current_room == 8:
-            enemies = room_eight_enemies
-        elif current_room == 9:
-            enemies = room_nine_enemies
-        else:
-            enemies = room_ten_enemies
+            camera_x = max(0, min(camera_x, MAP_WIDTH - WIDTH))
+            camera_y = max(0, min(camera_y, MAP_HEIGHT - HEIGHT))
 
-        if len(enemies) == 0:
-            for unlock in unlocks:
-                if player.rect.colliderect(unlock):
-                    doors_open = True
-                    print("unlocked")
+            if player.cooldown > 0:
+                player.cooldown -= 1
 
-        if doors_open:
-            for lock in locks:
-                if lock.contains(player.rect):
-                    doors_open = False
-                    current_room += 1
-                    print("door locked")
+            if current_room == 1:
+                enemies = room_one_enemies
+            elif current_room == 2:
+                enemies = room_two_enemies
+            elif current_room == 3:
+                enemies = room_three_enemies
+            elif current_room == 4:
+                enemies = room_four_enemies
+            elif current_room == 5:
+                enemies = room_five_enemies
+            elif current_room == 6:
+                enemies = room_six_enemies
+            elif current_room == 7:
+                enemies = room_seven_enemies
+            elif current_room == 8:
+                enemies = room_eight_enemies
+            elif current_room == 9:
+                enemies = room_nine_enemies
+            else:
+                enemies = room_ten_enemies
 
-        for enemy in enemies:
-            enemy.move(player, walls)
-            enemy.attack(player)
+            if len(enemies) == 0:
+                for unlock in unlocks:
+                    if player.rect.colliderect(unlock):
+                        doors_open = True
+                        print("unlocked")
 
-        if player.health <= 0:
-            player.health = player.max_health * 0.75
-
-            player.rect.topleft = player.spawn_point
-            player.x = player.rect.x
-            player.y = player.rect.y
-
-            player.feet.centerx = player.rect.centerx
-            player.feet.bottom = player.rect.bottom
-
-
-        if player.equipped_weapon is not None:
+            if doors_open:
+                for lock in locks:
+                    if lock.contains(player.rect):
+                        doors_open = False
+                        current_room += 1
+                        print("door locked")
 
             for enemy in enemies:
-                if player.equipped_weapon.rect.colliderect(enemy.rect):
-                    if enemy.enemy_cooldown == 0:
+                enemy.move(player, walls)
+                enemy.attack(player)
 
-                        d = player.equipped_weapon.damage
-                        enemy.health -= d
-                        enemy.text = str(d)
-                        enemy.timer = 60
-                        enemy.enemy_cooldown = 60
+            if player.health <= 0:
+                player.health = player.max_health * 0.75
 
-        for enemy in enemies[:]:
-            if enemy.health <= 0:
-                enemies.remove(enemy)
+                player.rect.topleft = player.spawn_point
+                player.x = player.rect.x
+                player.y = player.rect.y
 
-        if len(enemies) == 0:
-            room_cleared = True
-        else:
-            room_cleared = False
+                player.feet.centerx = player.rect.centerx
+                player.feet.bottom = player.rect.bottom
 
-        for w in weapon:
-            w.check_collect(player)
+
+            if player.equipped_weapon is not None:
+
+                for enemy in enemies:
+                    if player.equipped_weapon.rect.colliderect(enemy.rect):
+                        if enemy.enemy_cooldown == 0:
+
+                            d = player.equipped_weapon.damage
+                            enemy.health -= d
+                            enemy.text = str(d)
+                            enemy.timer = 60
+                            enemy.enemy_cooldown = 60
+
+            for enemy in enemies[:]:
+                if enemy.health <= 0:
+                    enemies.remove(enemy)
+
+            if len(enemies) == 0 and not powerup_claimed:
+                game_state = "Powerup_Choice"
+                powerup_claimed = True
+                room_cleared = True
+            else:
+                room_cleared = False
+
+            if len(enemies) == 0 and powerup_claimed:
+                for unlock in unlocks:
+                    if player.rect.colliderect(unlock):
+                        doors_open = True
+
+            if doors_open:
+                for lock in locks:
+                    doors_open = False
+                    current_room += 1
+                    powerup_claimed = False
+
+
+            for w in weapon:
+                w.check_collect(player)
 
         draw_level_json(json_level, camera_x, camera_y)
 
@@ -569,6 +602,9 @@ def main():
             enemy.draw(screen, camera_x, camera_y)
 
         draw_health_bar(screen, player)
+
+        if game_state == "Powerup_Choice":
+            draw_powerup_menu(screen)
 
         pygame.display.flip()
 
