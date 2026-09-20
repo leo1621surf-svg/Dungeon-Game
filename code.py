@@ -3,21 +3,16 @@ import sys
 import os
 import json
 
+from settings import *
+from player import Player
+from enemy import Enemy
+from weapon import Weapon
+
 #initializer
 pygame.init()
 
-#setup variables
-WIDTH, HEIGHT = 910, 690#728, 552
-PLAYER_BASE_SPEED = 4
-PLAYER_SPRINT_SPEED = 5
-ENEMY_SPEED = 2.5
-TILE = 32
-FEET_W, FEET_H = 24, 6
-LAST_LEVEL = 10
 FONT = pygame.font.SysFont(None, 25)
 POWERUP_FONT = pygame.font.SysFont(None, 35)
-SPRITESHEET_TILE = 16
-
 
 #creates screen and sets up caption
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -155,192 +150,6 @@ def draw_doors(level_data, camera_x, camera_y):
             tile_image = pygame.transform.scale(tile_image, (TILE, TILE))
             screen.blit(tile_image, (x - camera_x, y - camera_y))
 
-
-class Player:
-    def __init__(self, pos):
-        self.image = PLAYER_IMAGES["down"]
-        self.direction = "down"
-        self.rect = self.image.get_rect(topleft = pos)
-        self.feet = pygame.Rect(0, 0, FEET_W, FEET_H)
-        self.feet.centerx = self.rect.centerx
-        self.feet.bottom = self.rect.bottom
-        self.speed = PLAYER_BASE_SPEED
-        self.x = float(self.rect.x)
-        self.y = float(self.rect.y)
-        self.health = 100
-        self.max_health = 100
-        self.cooldown = 0
-        self.inventory = []
-        self.equipped_weapon = None
-        self.alive = True
-        self.spawn_point = (1060, 130)
-        self.weapon_side = "right"
-
-    def move(self, dx, dy, walls):
-
-        self.x += dx
-        self.rect.x = int(self.x)
-
-        self.feet.centerx = self.rect.centerx
-        self.feet.bottom = self.rect.bottom
-
-        for w in walls:
-            if self.rect.colliderect(w):
-                if dx > 0:
-                    self.rect.right = w.left
-                elif dx < 0:
-                    self.rect.left = w.right
-                self.x = self.rect.x
-
-        self.y += dy
-        self.rect.y = int(self.y)
-
-        self.feet.centerx = self.rect.centerx
-        self.feet.bottom = self.rect.bottom
-
-        for w in walls:
-            if self.rect.colliderect(w):
-                if dy > 0:
-                    self.rect.bottom = w.top
-                elif dy < 0:
-                    self.rect.top = w. bottom
-                self.y = self.rect.y
-
-                self.feet.centerx = self.rect.centerx
-                self.feet.bottom = self.rect.bottom
-
-        self.rect.clamp_ip(pygame.Rect(0, 0, MAP_WIDTH, MAP_HEIGHT))
-
-        self.x = self.rect.x
-        self.y = self.rect.y
-
-        self.feet.centerx = self.rect.centerx
-        self.feet.bottom = self.rect.bottom
-
-
-    def change_direction(self, dx, dy):
-        if dx > 0:
-            self.direction = "right"
-        elif dx < 0:
-            self.direction = "left"
-        elif dy > 0:
-            self.direction = "down"
-        elif dy < 0:
-            self.direction = "up"
-        self.image = PLAYER_IMAGES[self.direction]
-
-    def draw(self, surface, camera_x, camera_y):
-        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-
-        if self.equipped_weapon is not None:
-            weapon_y = self.rect.centery - 10
-
-            if self.weapon_side == "right":
-                weapon_x = self.rect.centerx + 3.5
-            else:
-                weapon_x = self.rect.left - self.equipped_weapon.rect.width + 10
-
-            self.equipped_weapon.rect.topleft = (weapon_x, weapon_y)
-
-            surface.blit(self.equipped_weapon.image, (weapon_x - camera_x, weapon_y - camera_y))
-
-class Enemy:
-    def __init__(self, pos, name, image):
-        self.image = image
-        self.rect = self.image.get_rect(topleft = pos)
-        self.speed = ENEMY_SPEED
-        self.x = float(self.rect.x)
-        self.y = float(self.rect.y)
-        self.health = 100
-        self.max_health = 100
-        self.enemy_cooldown = 60
-        self.text = ""
-        self.timer = 0
-        self.name = name
-        self.range = 125
-
-    def move(self, player, walls):
-        dx = dy = 0
-
-        x_distance = player.rect.centerx - self.rect.centerx
-        y_distance = player.rect.centery - self.rect.centery
-        distance = (x_distance**2 + y_distance**2) **0.5
-
-        if distance <= self.range:
-
-            if player.rect.centerx > self.rect.centerx:
-                dx = self.speed
-            elif player.rect.centerx < self.rect.centerx:
-                dx = -self.speed
-
-            if player.rect.centery > self.rect.centery:
-                dy = self.speed
-            elif player.rect.centery < self.rect.centery:
-                dy = -self.speed
-
-        self.x += dx
-        self.rect.x = int(self.x)
-        for wall in walls:
-            if self.rect.colliderect(wall):
-                if dx > 0:
-                    self.rect.right = wall.left
-                elif dx < 0:
-                    self.rect.left = wall.right
-                self.x = self.rect.x
-
-        self.y += dy
-        self.rect.y = int(self.y)
-        for wall in walls:
-            if self.rect.colliderect(wall):
-                if dy > 0:
-                    self.rect.bottom = wall.top
-                elif dy < 0:
-                    self.rect.top = wall.bottom
-                self.y = self.rect.y
-
-        if self.enemy_cooldown > 0:
-            self.enemy_cooldown -= 1
-
-        if self.timer > 0:
-            self.timer -= 1
-
-    def attack(self, player):
-        if player.cooldown == 0 and self.rect.colliderect(player.rect):
-            player.health -= 15
-            player.health = max(player.health, 0)
-            player.cooldown = 180
-
-    def draw(self, surface, camera_x, camera_y):
-        surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-
-        if self.timer > 0:
-            text = FONT.render(self.text, True, (255,0 ,0))
-            surface.blit(text, (self.rect.centerx - camera_x - text.get_width() //2, self.rect.top - camera_y - 20))
-
-
-class Weapon:
-    def __init__(self, pos, name, image, damage):
-        self.image = image
-        self.rect = self.image.get_rect(topleft=pos)
-        self.collected = False
-        self.name = name
-        self.equipped = False
-        self.damage = damage
-
-
-    def check_collect(self, player):
-        if not self.collected and self.rect.colliderect(player.rect):
-            self.collected = True
-
-            player.inventory.append(self)
-
-            if player.equipped_weapon is None:
-                player.equipped_weapon = self
-
-    def draw(self, surface, camera_x, camera_y):
-        if not self.collected:
-            surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
-
 def draw_health_bar(surface, player):
     width = 200
     height = 20
@@ -371,8 +180,10 @@ def main():
 
     current_room = 1
     room_cleared = False
+    menu_open = False
+    power_selected = False
 
-    player = Player((1060, 130))
+    player = Player((1060, 130), PLAYER_IMAGES, MAP_WIDTH, MAP_HEIGHT)
     doors_open = False
 
     game_state = "Playing"
@@ -381,9 +192,9 @@ def main():
     camera_x = 0
     camera_y = 0
 
-    room_one_enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"]),Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"]),
-                        Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"])]
-    room_two_enemies = [Enemy((100, 1250), "Ghost", ENEMY_IMAGES["ghost"]), Enemy((500, 1250), "Ghost", ENEMY_IMAGES["ghost"])]
+    room_one_enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),
+                        Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
+    room_two_enemies = [Enemy((100, 1250), "Ghost", ENEMY_IMAGES["ghost"], FONT), Enemy((500, 1250), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
     room_three_enemies = []
     room_four_enemies = []
     room_five_enemies = []
@@ -522,7 +333,7 @@ def main():
             else:
                 enemies = room_ten_enemies
 
-            if len(enemies) == 0:
+            if len(enemies) == 0 and power_selected:
                 for unlock in unlocks:
                     if player.rect.colliderect(unlock):
                         doors_open = True
@@ -570,8 +381,10 @@ def main():
                 game_state = "Powerup_Choice"
                 powerup_claimed = True
                 room_cleared = True
+                menu_open = True
             else:
                 room_cleared = False
+                menu_open = False
 
             if len(enemies) == 0 and powerup_claimed:
                 for unlock in unlocks:
@@ -602,6 +415,15 @@ def main():
             enemy.draw(screen, camera_x, camera_y)
 
         draw_health_bar(screen, player)
+        if menu_open:
+            menu_height = 300
+            menu_width = 500
+
+            x = (WIDTH - menu_width) // 2
+            y = (HEIGHT - menu_height) // 2
+
+            pygame.draw.rect(screen, (50, 50, 50), (x, y, menu_width, menu_height))
+            pygame.draw.rect(screen, (255, 255, 255), (x, y, menu_width, menu_height), 3)
 
         if game_state == "Powerup_Choice":
             draw_powerup_menu(screen)
