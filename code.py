@@ -163,12 +163,40 @@ def draw_health_bar(surface, player):
     pygame.draw.rect(surface, (255, 255, 255), (x, y, width, height), 2)
 
 def draw_powerup_menu(surface):
-    width, height = 450, 300
+    width, height = 600, 450
     x = (WIDTH - width) // 2
     y = (HEIGHT - height) // 2
     rectangle = pygame.Rect(x, y, width, height)
 
     pygame.draw.rect(surface, (0, 0, 0), rectangle)
+    pygame.draw.rect(surface, (255, 255, 255), rectangle, 3)
+
+    button_width = 150
+    button_height = 75
+    button_y = y + 320
+
+    button1 = pygame.Rect(x + 40, button_y, button_width, button_height)
+    button2 = pygame.Rect(x + 225, button_y, button_width, button_height)
+    button3 = pygame.Rect(x + 410, button_y, button_width, button_height)
+
+    pygame.draw.rect(surface, (70, 70, 70), button1)
+    pygame.draw.rect(surface, (70, 70, 70), button2)
+    pygame.draw.rect(surface, (70, 70, 70), button3)
+
+    pygame.draw.rect(surface, (255, 255, 255), button1, 3)
+    pygame.draw.rect(surface, (255, 255, 255), button2, 3)
+    pygame.draw.rect(surface, (255, 255, 255), button3, 3)
+
+    text1 = POWERUP_FONT.render("powerup 1", True, (255, 255, 255))
+    text2 = POWERUP_FONT.render("powerup 2", True, (255, 255, 255))
+    text3 = POWERUP_FONT.render("powerup 3", True, (255, 255, 255))
+
+    surface.blit(text1, text1.get_rect(center=button1.center))
+    surface.blit(text2, text2.get_rect(center=button2.center))
+    surface.blit(text3, text3.get_rect(center=button3.center))
+
+    return button1, button2, button3
+
 
 def main():
 
@@ -192,8 +220,8 @@ def main():
     camera_x = 0
     camera_y = 0
 
-    room_one_enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),
-                        Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
+    room_one_enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"], FONT)]#[Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),
+                        #Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
     room_two_enemies = [Enemy((100, 1250), "Ghost", ENEMY_IMAGES["ghost"], FONT), Enemy((500, 1250), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
     room_three_enemies = []
     room_four_enemies = []
@@ -272,7 +300,37 @@ def main():
 
             elif game_state == "Powerup_Choice":
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    pass
+                    mouse_position = pygame.mouse.get_pos()
+
+                    width, height = 600, 450
+                    x = (WIDTH - width) // 2
+                    y = (HEIGHT - height) // 2
+
+                    button_width = 150
+                    button_height = 75
+                    button_y = y + 320
+
+                    button1 = pygame.Rect(x + 40, button_y, button_width, button_height)
+                    button2 = pygame.Rect(x + 225, button_y, button_width, button_height)
+                    button3 = pygame.Rect(x + 410, button_y, button_width, button_height)
+
+                    if button1.collidepoint(mouse_position):
+                        power_selected = True
+                        game_state = "Playing"
+                        menu_open = False
+                        powerup_claimed = True
+
+                    elif button2.collidepoint(mouse_position):
+                        power_selected = True
+                        game_state = "Playing"
+                        menu_open = False
+                        powerup_claimed = True
+
+                    elif button3.collidepoint(mouse_position):
+                        power_selected = True
+                        game_state = "Playing"
+                        menu_open = False
+                        powerup_claimed = True
 
         if game_state == "Playing":
 
@@ -337,14 +395,13 @@ def main():
                 for unlock in unlocks:
                     if player.rect.colliderect(unlock):
                         doors_open = True
-                        print("unlocked")
 
             if doors_open:
                 for lock in locks:
                     if lock.contains(player.rect):
                         doors_open = False
                         current_room += 1
-                        print("door locked")
+                        powerup_claimed = False
 
             for enemy in enemies:
                 enemy.move(player, walls)
@@ -390,13 +447,6 @@ def main():
                 for unlock in unlocks:
                     if player.rect.colliderect(unlock):
                         doors_open = True
-
-            if doors_open:
-                for lock in locks:
-                    doors_open = False
-                    current_room += 1
-                    powerup_claimed = False
-
 
             for w in weapon:
                 w.check_collect(player)
