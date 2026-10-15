@@ -2,6 +2,7 @@ import pygame
 import sys
 import os
 import json
+import random
 
 from settings import *
 from player import Player
@@ -13,6 +14,8 @@ pygame.init()
 
 FONT = pygame.font.SysFont(None, 25)
 POWERUP_FONT = pygame.font.SysFont(None, 35)
+
+POWERUPS = ["Max Health Up", "Run Speed Up", "Damage Up", "Damage Reduction", "Attack Speed Up", "Enemy Poison", "Health Repair", "Remove Enemy"]
 
 #creates screen and sets up caption
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -179,23 +182,19 @@ def draw_powerup_menu(surface):
     button2 = pygame.Rect(x + 225, button_y, button_width, button_height)
     button3 = pygame.Rect(x + 410, button_y, button_width, button_height)
 
-    pygame.draw.rect(surface, (70, 70, 70), button1)
-    pygame.draw.rect(surface, (70, 70, 70), button2)
-    pygame.draw.rect(surface, (70, 70, 70), button3)
+    buttons = [button1, button2, button3]
 
-    pygame.draw.rect(surface, (255, 255, 255), button1, 3)
-    pygame.draw.rect(surface, (255, 255, 255), button2, 3)
-    pygame.draw.rect(surface, (255, 255, 255), button3, 3)
+    for i in range(3):
 
-    text1 = POWERUP_FONT.render("powerup 1", True, (255, 255, 255))
-    text2 = POWERUP_FONT.render("powerup 2", True, (255, 255, 255))
-    text3 = POWERUP_FONT.render("powerup 3", True, (255, 255, 255))
+        pygame.draw.rect(surface, (70, 70, 70), buttons[i])
+        pygame.draw.rect(surface, (255, 255, 255), buttons[i], 3)
 
-    surface.blit(text1, text1.get_rect(center=button1.center))
-    surface.blit(text2, text2.get_rect(center=button2.center))
-    surface.blit(text3, text3.get_rect(center=button3.center))
+        name_text = POWERUP_FONT.render(available_powerups[i], True, (255, 255, 255))
+        name_rect = name_text.get_rect(center=(buttons[i].centerx, button_y -25))
 
-    return button1, button2, button3
+        surface.blit(name_text, name_rect)
+
+    return buttons
 
 
 def main():
@@ -207,9 +206,9 @@ def main():
     MAP_HEIGHT = json_level["mapHeight"] * TILE
 
     current_room = 1
-    room_cleared = False
     menu_open = False
     power_selected = False
+    available_powerups = []
 
     player = Player((1060, 130), PLAYER_IMAGES, MAP_WIDTH, MAP_HEIGHT)
     doors_open = False
@@ -314,23 +313,14 @@ def main():
                     button2 = pygame.Rect(x + 225, button_y, button_width, button_height)
                     button3 = pygame.Rect(x + 410, button_y, button_width, button_height)
 
-                    if button1.collidepoint(mouse_position):
-                        power_selected = True
-                        game_state = "Playing"
-                        menu_open = False
-                        powerup_claimed = True
-
-                    elif button2.collidepoint(mouse_position):
-                        power_selected = True
-                        game_state = "Playing"
-                        menu_open = False
-                        powerup_claimed = True
-
-                    elif button3.collidepoint(mouse_position):
-                        power_selected = True
-                        game_state = "Playing"
-                        menu_open = False
-                        powerup_claimed = True
+                    buttons = [button1, button2, button3]
+                    for i in range(3):
+                        if buttons[i].collidepoint(mouse_position):
+                            selected_powerup = available_powerups[i]
+                            power_selected = True
+                            game_state = "Playing"
+                            menu_open = False
+                            powerup_claimed = True
 
         if game_state == "Playing":
 
@@ -396,12 +386,6 @@ def main():
                     if player.rect.colliderect(unlock):
                         doors_open = True
 
-            if doors_open:
-                for lock in locks:
-                    if lock.contains(player.rect):
-                        doors_open = False
-                        current_room += 1
-                        powerup_claimed = False
 
             for enemy in enemies:
                 enemy.move(player, walls)
@@ -437,11 +421,21 @@ def main():
             if len(enemies) == 0 and not powerup_claimed:
                 game_state = "Powerup_Choice"
                 powerup_claimed = True
-                room_cleared = True
                 menu_open = True
+                available_powerups = random.sample(POWERUPS, 3)
             else:
-                room_cleared = False
                 menu_open = False
+
+            if doors_open:
+                for lock in locks:
+                    if lock.contains(player.rect):
+                        doors_open = False
+                        current_room += 1
+                        powerup_claimed = False
+                        power_selected = False
+                        game_state = "Playing"
+                        menu_open = False
+                        break
 
             if len(enemies) == 0 and powerup_claimed:
                 for unlock in unlocks:
