@@ -165,7 +165,33 @@ def draw_health_bar(surface, player):
     pygame.draw.rect(surface, (0, 200, 0), (x, y, width * ratio, height))
     pygame.draw.rect(surface, (255, 255, 255), (x, y, width, height), 2)
 
-def draw_powerup_menu(surface):
+def text_wrap(surface, text, font, font_color, center_x, y, max_width):
+    words = text.split()
+    lines = []
+    current_line = ""
+
+    for word in words:
+        test_line = current_line + " " + word if current_line else word
+
+        if font.size(test_line)[0] <= max_width:
+            current_line = test_line
+        else:
+            if current_line:
+                lines.append(current_line)
+            current_line = word
+
+    if current_line:
+        lines.append(current_line)
+
+    line_height = font.get_linesize()
+
+    for i, line in enumerate(lines):
+        text_surface = font.render(line, True, font_color)
+        text_rect = text_surface.get_rect(center=(center_x, y + i * line_height))
+        surface.blit(text_surface, text_rect)
+
+
+def draw_powerup_menu(surface, available_powerups):
     width, height = 600, 450
     x = (WIDTH - width) // 2
     y = (HEIGHT - height) // 2
@@ -189,10 +215,11 @@ def draw_powerup_menu(surface):
         pygame.draw.rect(surface, (70, 70, 70), buttons[i])
         pygame.draw.rect(surface, (255, 255, 255), buttons[i], 3)
 
-        name_text = POWERUP_FONT.render(available_powerups[i], True, (255, 255, 255))
-        name_rect = name_text.get_rect(center=(buttons[i].centerx, button_y -25))
+        text_wrap(surface, available_powerups[i], POWERUP_FONT, (255, 255, 255), buttons[i].centerx, button_y -50, button_width - 10)
 
-        surface.blit(name_text, name_rect)
+        select_text = FONT.render("SELECT", True, (255, 255, 255))
+        select_rect = select_text.get_rect(center=buttons[i].center)
+        surface.blit(select_text, select_rect)
 
     return buttons
 
@@ -321,6 +348,7 @@ def main():
                             game_state = "Playing"
                             menu_open = False
                             powerup_claimed = True
+                            break
 
         if game_state == "Playing":
 
@@ -470,7 +498,7 @@ def main():
             pygame.draw.rect(screen, (255, 255, 255), (x, y, menu_width, menu_height), 3)
 
         if game_state == "Powerup_Choice":
-            draw_powerup_menu(screen)
+            draw_powerup_menu(screen, available_powerups)
 
         pygame.display.flip()
 
