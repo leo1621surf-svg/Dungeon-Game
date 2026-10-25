@@ -8,14 +8,13 @@ from settings import *
 from player import Player
 from enemy import Enemy
 from weapon import Weapon
+from powerups import POWERUPS, apply_powerup
 
 #initializer
 pygame.init()
 
 FONT = pygame.font.SysFont(None, 25)
 POWERUP_FONT = pygame.font.SysFont(None, 35)
-
-POWERUPS = ["Max Health Up", "Run Speed Up", "Damage Up", "Damage Reduction", "Attack Speed Up", "Enemy Poison", "Health Repair", "Remove Enemy"]
 
 #creates screen and sets up caption
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -344,6 +343,7 @@ def main():
                     for i in range(3):
                         if buttons[i].collidepoint(mouse_position):
                             selected_powerup = available_powerups[i]
+                            apply_powerup(selected_powerup, player)
                             power_selected = True
                             game_state = "Playing"
                             menu_open = False

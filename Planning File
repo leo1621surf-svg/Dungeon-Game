@@ -29,11 +29,11 @@ DONE
  - weapons are randomly generated based on rarity
 
 Power-up ideas:
-increase max health
-increase run speed
-increase damage
-Damage reduction
-Health repair
-increase attack speed
-Enemy poison
-Remove an enemy
+Max Health Up - increases player max health (+20)
+Run Speed Up - increases player run speed (+.50) - 30 seconds
+Damage up - increases player damage (+25%) - 30 seconds
+Damage reduction - Decreases damage taken on the player (-15%) - 30 seconds
+Health repair - regenerated some of player health (+50 but can't go over max health)
+Attack Speed Up - increases player attack speed (-15 from 60) - 30 seconds
+Enemy poison - Does damage to enemy overtime after hit by the player (-5 health from enemy every 0.75 sec for 6 seconds)
+Remove enemy - removes an enemy from the next room (cannot be the boss)
