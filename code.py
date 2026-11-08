@@ -235,6 +235,7 @@ def main():
     menu_open = False
     power_selected = False
     available_powerups = []
+    remove_enemy = False
 
     player = Player((1060, 130), PLAYER_IMAGES, MAP_WIDTH, MAP_HEIGHT)
     doors_open = False
@@ -388,6 +389,11 @@ def main():
             if player.cooldown > 0:
                 player.cooldown -= 1
 
+            if player.speed_powerup_active:
+                if pygame.time.get_ticks() >= player.speed_powerup_endtime:
+                    player.speed -= 0.5
+                    player.speed_powerup_active = False
+
             if current_room == 1:
                 enemies = room_one_enemies
             elif current_room == 2:
@@ -408,6 +414,10 @@ def main():
                 enemies = room_nine_enemies
             else:
                 enemies = room_ten_enemies
+
+            if remove_enemy and len(enemies) > 0:
+                enemies.pop()
+                remove_enemy = False
 
             if len(enemies) == 0 and power_selected:
                 for unlock in unlocks:

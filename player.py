@@ -23,6 +23,13 @@ class Player:
         self.weapon_side = "right"
         self.map_width = map_width
         self.map_height = map_height
+        self.speed_powerup_active = False
+        self.speed_powerup_endtime = 0
+        self.damage_powerup_active = False
+        self.damage_powerup_endtime = 0
+        self.damage_powerup_weapon = None
+        self.original_damage = 0
+
 
     def move(self, dx, dy, walls):
 
