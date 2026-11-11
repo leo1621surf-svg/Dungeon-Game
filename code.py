@@ -249,7 +249,7 @@ def main():
     room_one_enemies = [Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"], FONT)]#[Enemy((100, 200), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),Enemy((300, 75), "Cyclops", ENEMY_IMAGES["cyclops"], FONT),
                         #Enemy((200, 550), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
     room_two_enemies = [Enemy((100, 1250), "Ghost", ENEMY_IMAGES["ghost"], FONT), Enemy((500, 1250), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
-    room_three_enemies = []
+    room_three_enemies = [Enemy((100, 1450), "Ghost", ENEMY_IMAGES["ghost"], FONT), Enemy((500, 1450), "Ghost", ENEMY_IMAGES["ghost"], FONT)]
     room_four_enemies = []
     room_five_enemies = []
     room_six_enemies = []
@@ -344,7 +344,7 @@ def main():
                     for i in range(3):
                         if buttons[i].collidepoint(mouse_position):
                             selected_powerup = available_powerups[i]
-                            apply_powerup(selected_powerup, player)
+                            apply_powerup(selected_powerup, player, enemies)
                             power_selected = True
                             game_state = "Playing"
                             menu_open = False
@@ -393,6 +393,20 @@ def main():
                 if pygame.time.get_ticks() >= player.speed_powerup_endtime:
                     player.speed -= 0.5
                     player.speed_powerup_active = False
+
+            if player.damage_powerup_active:
+                if pygame.time.get_ticks() >= player.damage_powerup_endtime:
+                    player.damage_powerup_weapon.damage = player.original_damage
+                    player.damage_powerup_active = False
+                    player.damage_powerup_weapon = None
+
+            if player.damage_reduction_active:
+                if pygame.time.get_ticks() >= player.damage_reduction_endtime:
+                    for enemy in player.original_enemy_damage:
+                        enemy.damage = player.original_enemy_damage[enemy]
+
+                    player.damage_powerup_active = False
+                    player.original_enemy_damage = {}
 
             if current_room == 1:
                 enemies = room_one_enemies

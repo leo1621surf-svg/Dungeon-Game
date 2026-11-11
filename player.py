@@ -29,6 +29,9 @@ class Player:
         self.damage_powerup_endtime = 0
         self.damage_powerup_weapon = None
         self.original_damage = 0
+        self.damage_reduction_active = False
+        self.damage_reduction_endtime = 0
+        self.original_enemy_damage = {}
 
 
     def move(self, dx, dy, walls):

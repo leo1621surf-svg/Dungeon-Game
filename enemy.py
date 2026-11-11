@@ -67,6 +67,7 @@ class Enemy:
             player.health -= 15
             player.health = max(player.health, 0)
             player.cooldown = 180
+            print(f"health = {player.health}")
 
     def draw(self, surface, camera_x, camera_y):
         surface.blit(self.image, (self.rect.x - camera_x, self.rect.y - camera_y))
